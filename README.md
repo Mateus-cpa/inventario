@@ -1,12 +1,27 @@
-# Projeto de Tratamento de Dados Patrimoniais
+# Projeto de Inventário Patrimonial
 
 ## Estrutura do Projeto
 
 Este projeto utiliza Streamlit para criar uma aplicação web que permite:
+### 1. Carregar dados brutos do eLog
+Nesta etapa será recebida a base de dados em excel exportada pelo eLog e carregada no sistema.
 
-* Visualizar a situação do levantamento patrimonial (inventário).
-* Cadastrar levantamentos in loco.
-* Exportar dados em txt para carga no eLog
+#### 1.1. Salvar na planilha de levantamento (temporário até a migração total)
+A base tratada será salva na planilha de levantamento para disponibilizar às equipes até o painel streamlit estar pronto.
+
+### 2. Tratar dados de forma a padronizar independentemente das colunas de entrada
+
+### 3. Carregar base no SQLite
+
+### 4. Visualizar a situação do levantamento patrimonial (inventário)
+
+### 5. Cadastrar levantamentos in loco
+- Tela de cadastramento.
+
+### 6. Conciliação eLog
+- Exportar dados em txt para carga no eLog.
+Serão criados filtros de levantamentos por dia e levantamentos não carregados.
+- Verificar bens inventariados por outras UGs
 
 ## Tecnologias
 
@@ -18,7 +33,7 @@ Este projeto utiliza Streamlit para criar uma aplicação web que permite:
 
 ## Pré-requisitos
 
-* Python 3.7+
+* Python 3.13.0
 * Pip
 
 ## Instalação
