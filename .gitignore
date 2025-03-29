@@ -3,6 +3,7 @@
 
 # Dados crus do sistema
 data
+data_bronze
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
