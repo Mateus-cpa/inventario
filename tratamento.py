@@ -241,6 +241,11 @@ def processa_planilha(df):
     df['serie_total'] = df['serie_total'].replace('', 'Sem serial cadastrado')
     df['acautelado para'] = df['acautelado para'].replace('','Sem acautelamento')
     
+    #salvar csv de localidades únicas como lista
+    localidades = df['localidade'].unique()
+    localidades = pd.Series(localidades, name='localidade')
+    pd.concat([localidades,pd.Series(['Nova localidade'])])
+    localidades.to_csv('data_bronze/localidades.csv', index=False, header=False)
     
     return df
 
