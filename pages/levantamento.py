@@ -6,7 +6,8 @@ import datetime
 # Substitua por sua lógica real de conexão com o banco de dados
 
 def obter_localidades():
-    return ["Prédio Administrativo", "Almoxarifado", "Laboratório A", "Nova Localidade"]
+    localidades = pd.read_csv("data_bronze/localidades.csv").values.tolist()
+    return localidades
 
 def buscar_patrimonios_nao_inventariados(ano, localidade, caracteristicas=None):
     # Simulação de busca no banco de dados
@@ -157,7 +158,11 @@ def tela_input_dados():
                     pass
 
 if __name__ == "__main__":
-    if 'autenticado' not in st.session_state or not st.session_state['autenticado']:
+    
+    """if 'autenticado' not in st.session_state or not st.session_state['autenticado']:
         tela_credenciais()
     else:
-        tela_input_dados()
+        tela_input_dados()"""
+    # Para fins de teste, vamos chamar a tela de input de dados diretamente
+    tela_input_dados()
+    # A autenticação deve ser implementada antes de chamar a função de input de dados
