@@ -12,7 +12,6 @@ def obter_localidades():
 def buscar_patrimonios_nao_inventariados(ano, localidade, caracteristicas=None):
     # Simulação de busca no banco de dados
     
-    df = pd.read_csv('data_bronze/lista_bens-processado.csv')
     df = df[df['localidade'] == localidade]
     df = df[df['ultimo levantamento'] < dt.date.today().year]
     if caracteristicas:
@@ -26,14 +25,11 @@ def adicionar_ao_inventario(item):
             ~st.session_state['patrimonios_nao_inventariados']['Descrição'].isin([item['Descrição']])
         ]
 
-"""def obter_dados_inventario_atual():
-    if 'inventario' in st.session_state:
-        return pd.DataFrame(st.session_state['inventario'])
-    return pd.DataFrame()
-"""
+
 # --- Tela de Input de Dados ---
 def tela_input_dados():
     st.title("Levantamento Patrimonial")
+    df = pd.read_csv('data_bronze/lista_bens-processado.csv')
 
     if 'localidade_selecionada' not in st.session_state:
         st.session_state['localidade_selecionada'] = None
@@ -59,17 +55,19 @@ def tela_input_dados():
 
     st.subheader("Inserir Dados do Patrimônio")
     id = st.text_input("Identificação do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)")   
+    #id = '2010060766' #TIC
+    #id = '2010041474' #outro
     if id:
-        #procurar id nas colunas 'num patrimonio', 'tombo_antigo', 'serie_total' do dataframe df e exibir a linha correspondente
+        #procurar id nas colunas 'num tombamento', 'tombo_antigo', 'serie_total' do dataframe df
+        id_linha = df[(df['num tombamento'] == id) | (df['tombo_antigo'] == id) | (df['serie_total'] == id)]            
         # Se o id for encontrado, exibir as informações do patrimônio
-        id_linha = df[(df['num patrimonio'] == id) | (df['tombo_antigo'] == id) | (df['serie_total'] == id)]            
         if id_linha.empty:
-            st.warning(f"Identificação {id} não encontrada, verifique a etiqueta ou se o material é de outra UG.")
+            st.warning(f"Identificação {id} não encontrada, verifique se a etiqueta está correta ou se o material é de outra UG.")
             adicionar_de_outra_ug = st.button("Adicionar de Outra UG")
             if adicionar_de_outra_ug:
                 # Inserir linha ao df com o numero de patrimonio no indice e as colunas 'inventariado', 'horario_inventário', 'local_inventario' preenchidas
                 df.loc[id] = {
-                    'num patrimonio': id,
+                    'num tombamento': id,
                     'denominacao': 'Material de outra UG',
                     'tombo_antigo': None,
                     'serie_total': None,
@@ -88,7 +86,7 @@ def tela_input_dados():
             st.subheader("Patrimônio Encontrado")
             col1, col2, col3, col4 = st.columns(4)
             with col1:
-                st.write(f"**Nº Patrimônio:** {id_linha['num patrimonio'].values[0]}")
+                st.write(f"**Nº Patrimônio:** {id_linha['num tombamento'].values[0]}")
                 st.write(f"**Tombo Antigo:** {id_linha['tombo_antigo'].values[0]}")
                 st.write(f"**Nº Serial:** {id_linha['serie_total'].values[0]}")
             with col2:
@@ -108,11 +106,11 @@ def tela_input_dados():
                 #adicionar um checkbox para cada linha encontrada
                 col_check, col_info = st.columns([0.1, 0.9])
                 with col_check:
-                    if st.checkbox(f"Selecionar {row['num patrimonio']}", key=f"check_{index}"):
-                        st.session_state['patrimonio_selecionado'] = row['num patrimonio']
+                    if st.checkbox(f"Selecionar {row['num tombamento']}", key=f"check_{index}"):
+                        st.session_state['patrimonio_selecionado'] = row['num tombamento']
                 with col_info:
                     st.write(f"**Descrição:** {row['denominacao']}")
-                    st.write(f"**Nº Patrimônio:** {row['num patrimonio']}")
+                    st.write(f"**Nº Patrimônio:** {row['num tombamento']}")
                     st.write(f"**Tombo Antigo:** {row['tombo_antigo']}")
                     st.write(f"**Nº Serial:** {row['serie_total']}")
                     st.write(f"**Localidade atual:** {row['localidade']}")
@@ -132,7 +130,7 @@ def tela_input_dados():
         # Se encontrado, exibir informações e botão para adicionar ao inventário
         pass
     
-    # Buscar materiais sem patrimônio nãop inventariado spor suas características
+    # Buscar materiais sem patrimônio não inventariado spor suas características
     caracteristicas = st.text_input("Buscar por características")
     if caracteristicas:
         if st.session_state['localidade_selecionada']:
@@ -166,22 +164,25 @@ def tela_input_dados():
             st.warning("Selecione ou insira uma localidade primeiro.")
 
     # Campo para leitura de serial se for TIC e não tiver serial
-    if material_selecionado:
+    if (id and 
+        id_linha['grupo de material'] == 'MATERIAL DE TECNOLOGIA DA INFORMAÇÃO E COMUNICAÇÃO - TIC' and 
+        id_linha['serie_total'] == 'Sem serial cadastrado'):
         st.subheader("Leitura de Serial (se necessário)")
-        for index, row in df_inventario.iterrows():
-            if row['Tipo'] == 'TIC' and pd.isna(row['Numero_Serie']):
-                st.write(f"**{row['Descrição']} (TIC sem Serial)**")
-                novo_serial = st.text_input(f"Ler Serial para {row['Descrição']}", key=f"serial_{index}")
-                if novo_serial:
-                    st.write(f"Serial lido: {novo_serial}")
-                    # Adicionar lógica para atualizar o número de série no inventário
-                    # ou no banco de dados, se já estiver sendo persistido
-                    pass
+        st.write(f"**{id_linha['denominacao']} (TIC sem Serial)**")
+        novo_serial = st.text_input(f"Ler Serial para {id_linha['denominacao']}", key=f"cadastra_serial")
+        if novo_serial:
+            st.write(f"Serial lido: {novo_serial}")
+            # Adicionar lógica para atualizar o número de série no inventário
+            # ou no banco de dados, se já estiver sendo persistido
+            pass
 
     st.subheader("Bens Levantados")
-    df_inventario = df[df['local_inventario'] == st.session_state['localidade_selecionada']]
-    df_inventario = df_inventario[['num patrimonio', 'denominacao', 'tombo_antigo', 'serie_total', 'localidade', 'status', 'marca_total', 'modelo_total', 'ultimo levantamento', 'especificacoes']]
-    if not df_inventario.empty:
+    try:
+        df_inventario = df[df['local_inventario'] == st.session_state['localidade_selecionada']]
+        df_inventario = df_inventario[['num tombamento', 'denominacao', 'tombo_antigo', 
+                                       'serie_total', 'localidade', 'status', 
+                                       'marca_total', 'modelo_total', 
+                                       'ultimo levantamento', 'especificacoes']]
         st.dataframe(df_inventario)
         st.subheader("Imprimir/Substituir Etiqueta")
         for index, row in df_inventario.iterrows():
@@ -189,8 +190,8 @@ def tela_input_dados():
             col_print = st.checkbox("Emitir Etiqueta", value=True, key=f"print_{index}")
             if col_print:
                 st.write("Opções de impressão/substituição...") # Adicione a lógica de impressão aqui
-    else:
-        st.info("Nenhum bem foi adicionado ao inventário ainda.")
+    except KeyError:
+        st.write('Nenhum bem foi adicionado ao inventário ainda.')
     
     st.subheader("Adicionar Bens Acautelados")
     adicionar_acautelados = st.radio("Adicionar bens acautelados", ["Sim", "Não"], key="acautelados")
@@ -199,13 +200,13 @@ def tela_input_dados():
             st.success("Levantamento concluído!")
             # Adicionar lógica para salvar os dados do inventário no banco de dados
     else:
-        st.warning("Marque 'Não' para adicionar bens acautelados e habilitar a conclusão.")
+        st.warning("Marque 'Não' para finalizar inventário e habilitar a conclusão.")
 
     # Listar bens a inventariar
     st.subheader("Bens a Inventariar")
     df_localidade = df[df['localidade'] == st.session_state['localidade_selecionada']]
-    df_localidade = df_localidade[df_localidade['inventariado'] == 'não']
-    df_localidade = df_localidade[['num patrimonio', 'denominacao', 'tombo_antigo', 'serie_total', 'localidade', 'status', 'marca_total', 'modelo_total', 'ultimo levantamento', 'especificacoes']]
+    df_localidade = df_localidade[df_localidade['inventariado'] == None]
+    df_localidade = df_localidade[['num tombamento', 'denominacao', 'tombo_antigo', 'serie_total', 'localidade', 'status', 'marca_total', 'modelo_total', 'ultimo levantamento', 'especificacoes']]
     st.dataframe(df_localidade)
 
     
