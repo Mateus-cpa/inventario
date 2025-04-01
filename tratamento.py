@@ -3,6 +3,7 @@ import pandas as pd
 from tqdm import tqdm
 import openpyxl
 import os
+#import datetime as dt
 
 def pega_tamanho_em_mb(caminho: str):
     return os.path.getsize(caminho) / (1024 * 1024)
@@ -241,6 +242,9 @@ def processa_planilha(df):
     
     #transforma num tombamento em index
     df['index'] = df['num tombamento']
+
+    #cria colunas para levantamento
+    df['inventariado'] = df['ano do levantamento'].apply(lambda linha: 'sim' if linha == 2025 else None)
 
     #salvar csv de localidades únicas como lista
     localidades = df['localidade'].unique()
