@@ -77,8 +77,6 @@ def ler_excel_com_progresso_openpyxl(caminho, chunk_size=1000):
 def processa_planilha(df):    
     #configura índice
     resultados = pd.DataFrame()
-    df['index'] = df['num tombamento']
-    df.set_index('index')
     qtde_bens = len(df.index)
     resultados['qtde_bens'] = qtde_bens
     resultados['qtde_inicial_colunas'] = len(df.columns)
@@ -241,6 +239,9 @@ def processa_planilha(df):
     df['serie_total'] = df['serie_total'].replace('', 'Sem serial cadastrado')
     df['acautelado para'] = df['acautelado para'].replace('','Sem acautelamento')
     
+    #transforma num tombamento em index
+    df['index'] = df['num tombamento']
+
     #salvar csv de localidades únicas como lista
     localidades = df['localidade'].unique()
     localidades = pd.Series(localidades, name='localidade')
@@ -256,3 +257,7 @@ if __name__ == '__main__':
     
     df_processado = processa_planilha(df_lista_materiais)
     df_processado.to_csv('data_bronze/lista_bens-processado.csv')
+    # gerar estatísticas dos stats após o processamento, comparando arquivo anterior e posterior (nº colunas, tamanho do arquivo, etc.)
+    #guardar a quantidade de último levantamento e ano do levantamento e 
+    # adicionar em arquivo de controle_levantamento (dia, unidade, quantidade de bens levantados) para poder gerar um gráfico de evolução
+
