@@ -3,7 +3,6 @@ import pandas as pd
 import datetime as dt
 
 # --- Simulação de Dados e Funções ---
-# Substitua por sua lógica real de conexão com o banco de dados
 
 def obter_localidades():
     localidades = pd.read_csv("data_bronze/localidades.csv").values.tolist()
@@ -25,11 +24,19 @@ def adicionar_ao_inventario(item):
             ~st.session_state['patrimonios_nao_inventariados']['Descrição'].isin([item['Descrição']])
         ]
 
+def ler_base_processada(caminho):
+    # Simulação de leitura de base processada
+    df = pd.read_csv(caminho).iloc[:, 1:]
+    df = df.set_index('num tombamento',drop=False)
+    #num tombamento como object
+    df['num tombamento'] = df['num tombamento'].astype(object)
+
+    return df
 
 # --- Tela de Input de Dados ---
-def tela_input_dados():
+def tela_input_dados(df):
     st.title("Levantamento Patrimonial")
-    df = pd.read_csv('data_bronze/lista_bens-processado.csv')
+
 
     if 'localidade_selecionada' not in st.session_state:
         st.session_state['localidade_selecionada'] = None
@@ -205,7 +212,7 @@ def tela_input_dados():
     # Listar bens a inventariar
     st.subheader("Bens a Inventariar")
     df_localidade = df[df['localidade'] == st.session_state['localidade_selecionada']]
-    df_localidade = df_localidade[df_localidade['inventariado'] == None]
+    #df_localidade = df_localidade[df_localidade['inventariado'] == None]
     df_localidade = df_localidade[['num tombamento', 'denominacao', 'tombo_antigo', 'serie_total', 'localidade', 'status', 'marca_total', 'modelo_total', 'ultimo levantamento', 'especificacoes']]
     st.dataframe(df_localidade)
 
@@ -218,5 +225,7 @@ if __name__ == "__main__":
     else:
         tela_input_dados()"""
     # Para fins de teste, vamos chamar a tela de input de dados diretamente
+    CAMINHO_PROCESSADO = 'data_bronze/lista_bens-processado.csv'
+    ler_base_processada(CAMINHO_PROCESSADO)
     tela_input_dados()
     # A autenticação deve ser implementada antes de chamar a função de input de dados
