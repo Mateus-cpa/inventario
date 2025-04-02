@@ -13,6 +13,9 @@ def verificar_credenciais(ug, usuario, senha):
 
 # Tela de Credenciais
 def tela_credenciais():
+    menu = st.button('Menu principal')
+    if menu:
+        st.switch_page('menu.py')
     st.title("Credenciais")
     ug = st.text_input("UG")
     usuario = st.text_input("Usuário")
@@ -51,13 +54,14 @@ def tela_input_dados():
     # Lógica para habilitar o botão "Concluir" apenas se "Adicionar bens acautelados" for "Não"
     adicionar_bens_acautelados = st.radio("Adicionar bens acautelados", ["Sim", "Não"])
     if adicionar_bens_acautelados == "Não":
-        if st.button("Concluir"):
+        st.button("Concluir")
             # Lógica para concluir o levantamento
             # ...
 
 # Tela de Visualização do Inventário
 def tela_visualizacao_inventario():
     st.title("Visualização do Inventário")
+    pass
     # Lógica para exibir a situação do levantamento patrimonial
     # ...
 
