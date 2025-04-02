@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 import datetime as dt
+from menu import ler_base_processada
 
-# --- Simulação de Dados e Funções ---
-
+#Funções auxiliares
 def obter_localidades():
     localidades = pd.read_csv("data_bronze/localidades.csv").values.tolist()
     return localidades
@@ -25,17 +25,14 @@ def adicionar_ao_inventario(item):
         ]
 
 
-
 # --- Tela de Input de Dados ---
 def tela_input_dados(df):
     st.title("Levantamento Patrimonial")
-
 
     if 'localidade_selecionada' not in st.session_state:
         st.session_state['localidade_selecionada'] = None
     if 'inventario' not in st.session_state:
         st.session_state['inventario'] = []
-    df = pd.read_csv('data_bronze/lista_bens-processado.csv')
     col1, col2 = st.columns(2)
     with col1:
         localidades = obter_localidades()
@@ -203,16 +200,17 @@ def tela_input_dados(df):
         st.warning("Marque 'Não' para finalizar inventário e habilitar a conclusão.")
 
     # Listar bens a inventariar
-    st.subheader("Bens a Inventariar")
-    df_localidade = df[df['localidade'] == st.session_state['localidade_selecionada']]
+    df_localidade = df[df['localidade'].isin(list(localidade_escolhida))]
+    #df_localidade = df[df['localidade'] == st.session_state['localidade_selecionada']]
     #df_localidade = df_localidade[df_localidade['inventariado'] == None]
-    df_localidade = df_localidade[['num tombamento', 'denominacao', 'tombo_antigo', 'serie_total', 'localidade', 'status', 'marca_total', 'modelo_total', 'ultimo levantamento', 'especificacoes']]
+    df_localidade = df_localidade[['denominacao', 'marca_total', 'modelo_total', 'serie_total', 'status','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'especificacoes','num tombamento', 'localidade']]
+    st.subheader(f"{df_localidade.shape[0]} Bens a Inventariar")    
     st.dataframe(df_localidade)
 
     
 
 if __name__ == "__main__":
-    
-    
-    tela_input_dados()
+    CAMINHO_ARQ_PROCESSADO = 'data_bronze/lista_bens-processado.csv'
+    df= ler_base_processada(CAMINHO_ARQ_PROCESSADO)
+    tela_input_dados(df)
     # A autenticação deve ser implementada antes de chamar a função de input de dados
