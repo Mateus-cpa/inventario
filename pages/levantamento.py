@@ -24,14 +24,7 @@ def adicionar_ao_inventario(item):
             ~st.session_state['patrimonios_nao_inventariados']['Descrição'].isin([item['Descrição']])
         ]
 
-def ler_base_processada(caminho):
-    # Simulação de leitura de base processada
-    df = pd.read_csv(caminho).iloc[:, 1:]
-    df = df.set_index('num tombamento',drop=False)
-    #num tombamento como object
-    df['num tombamento'] = df['num tombamento'].astype(object)
 
-    return df
 
 # --- Tela de Input de Dados ---
 def tela_input_dados(df):
@@ -220,12 +213,6 @@ def tela_input_dados(df):
 
 if __name__ == "__main__":
     
-    """if 'autenticado' not in st.session_state or not st.session_state['autenticado']:
-        tela_credenciais()
-    else:
-        tela_input_dados()"""
-    # Para fins de teste, vamos chamar a tela de input de dados diretamente
-    CAMINHO_PROCESSADO = 'data_bronze/lista_bens-processado.csv'
-    ler_base_processada(CAMINHO_PROCESSADO)
+    
     tela_input_dados()
     # A autenticação deve ser implementada antes de chamar a função de input de dados
