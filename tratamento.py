@@ -1,7 +1,7 @@
 #importações
 import pandas as pd
-from tqdm import tqdm
-import openpyxl
+#from tqdm import tqdm
+#import openpyxl
 import os
 #import datetime as dt
 
@@ -12,20 +12,17 @@ def pega_tamanho_em_mb(caminho: str):
 def ler_excel(caminho):
     resultados = pd.DataFrame()
     tamanho_inicial = pega_tamanho_em_mb(caminho=caminho)
-    print(f' O tamanho inicial é: {round(tamanho_inicial),2} MB')
     resultados['tamanho_inicial_mb'] = tamanho_inicial
-    with tqdm(total=1, desc="Lendo Excel...") as pbar:
-        try:
-            df = pd.read_excel(caminho)
-            pbar.update(1) # Indica que a leitura foi concluída
-            return df
-        except FileNotFoundError:
-            print("Arquivo não encontrado.")
-            return None
-        except Exception as e:
-            print(f"Ocorreu um erro ao ler o arquivo: {e}")
-            return None
-    resultados.to_csv('data_bronze/resultados1.csv')
+    try:
+        df = pd.read_excel(caminho)        
+    except FileNotFoundError:
+        print("Arquivo não encontrado.")
+        return None
+    except Exception as e:
+        print(f"Ocorreu um erro ao ler o arquivo: {e}")
+        return None
+    resultados['qtde_colunas_inicial'] = df.shape[1]
+    resultados.to_csv('data_bronze/resultados_iniciais.csv')
     return df
 
 #segunda tentativa de leitura
@@ -80,12 +77,6 @@ def processa_planilha(df):
     resultados = pd.DataFrame()
     qtde_bens = len(df.index)
     resultados['qtde_bens'] = qtde_bens
-    resultados['qtde_inicial_colunas'] = len(df.columns)
-
-    
-    #proporção de valores nulos por coluna
-    df_null = df.isnull().sum()/qtde_bens*100
-    resultados['colunas_nulas_iniciais'] = df_null.sort_values(ascending=False).head(30)
     
     #checar se colunas de números de série existem na planilha
     cols_to_check = ['imei','n de serie', 'numero de serie',
@@ -232,20 +223,13 @@ def processa_planilha(df):
 
     #Preencher campos vazios dos campos
     df['localidade'].fillna('Sem localidade', inplace=True)
-
-    # preencher linhas vazias nas colunas
     df['ultimo levantamento'] = df['ultimo levantamento'].fillna("0000 / 2010")  # Repor NaN
     df['ano do levantamento'] = df['ultimo levantamento'].str.split('/').str[-1].str.strip().astype(int)     
     df['modelo_total'] = df['modelo_total'].fillna('Sem modelo')
     df['serie_total'] = df['serie_total'].replace('', 'Sem serial cadastrado')
     df['acautelado para'] = df['acautelado para'].replace('','Sem acautelamento')
     
-    #transforma num tombamento em index
-    df['index'] = df['num tombamento']
-
-    #cria colunas para levantamento
-    df['inventariado'] = df['ano do levantamento'].apply(lambda linha: 'sim' if linha == 2025 else None)
-
+    
     #salvar csv de localidades únicas como lista
     localidades = df['localidade'].unique()
     localidades = pd.Series(localidades, name='localidade')
