@@ -51,19 +51,23 @@ def tela_input_dados(df):
         acompanhante = st.text_input("Acompanhante")
 
     st.subheader("Inserir Dados do Patrimônio")
-    id = st.text_input("Identificação do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)")   
+    col1, col2 = st.columns([0.4,0.6])
+    id = str(col1.text_input("Identificação do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)"))
     #id = '2010060766' #TIC
     #id = '2010041474' #outro
     if id:
         #procurar id nas colunas 'num tombamento', 'tombo_antigo', 'serie_total' do dataframe df
-        id_linha = df[(df['num tombamento'] == id) | (df['tombo_antigo'] == id) | (df['serie_total'] == id)]            
+        if id in df.index:
+            id_linha = df.iloc[str(id),:]
+        #id_linha = df[(df.index == id) | (df['tombo_antigo'] == id) | (df['serie_total'] == id)]
+        st.write(f"**Buscando por:** {id_linha}")
         # Se o id for encontrado, exibir as informações do patrimônio
         if id_linha.empty:
             st.warning(f"Identificação {id} não encontrada, verifique se a etiqueta está correta ou se o material é de outra UG.")
             adicionar_de_outra_ug = st.button("Adicionar de Outra UG")
             if adicionar_de_outra_ug:
-                # Inserir linha ao df com o numero de patrimonio no indice e as colunas 'inventariado', 'horario_inventário', 'local_inventario' preenchidas
-                df.loc[id] = {
+                # Inserir linha ao df_inventario com o numero de patrimonio no indice e as colunas 'inventariado', 'horario_inventário', 'local_inventario' preenchidas
+                df_inventario.loc[id] = {
                     'num tombamento': id,
                     'denominacao': 'Material de outra UG',
                     'tombo_antigo': None,
@@ -119,16 +123,16 @@ def tela_input_dados(df):
             # se for marcado o checkbox, adicionar à lista de inventário
                 
         # adicionar à coluna 'inventariado' = 'sim' no banco de dados
-        df.loc[id, 'inventariado'] = 'sim'
+        df_inventario.loc[id, 'inventariado'] = 'sim'
         # adicionar à coluna 'horario_inventário' = datetime no banco de dados
-        df.loc[id, 'horario_inventário'] = dt.datetime.now()
+        df_inventario.loc[id, 'horario_inventário'] = dt.datetime.now()
         # adicionar à coluna 'local_inventario' = localidade no banco de dados
-        df.loc[id, 'local_inventario'] = st.session_state['localidade_selecionada']
+        df_inventario.loc[id, 'local_inventario'] = st.session_state['localidade_selecionada']
         # Se encontrado, exibir informações e botão para adicionar ao inventário
         pass
     
-    # Buscar materiais sem patrimônio não inventariado spor suas características
-    caracteristicas = st.text_input("Buscar por características")
+    # Buscar materiais sem patrimônio não inventariado por suas características
+    caracteristicas = col2.text_input("Buscar por características")
     if caracteristicas:
         if st.session_state['localidade_selecionada']:
             ano_atual = dt.date.today().year
@@ -173,7 +177,7 @@ def tela_input_dados(df):
             # ou no banco de dados, se já estiver sendo persistido
             pass
 
-    st.subheader("Bens Levantados")
+    st.subheader(f"Bens Levantados em {st.session_state['localidade_selecionada']}")
     try:
         df_inventario = df[df['local_inventario'] == st.session_state['localidade_selecionada']]
         df_inventario = df_inventario[['num tombamento', 'denominacao', 'tombo_antigo', 
@@ -204,7 +208,7 @@ def tela_input_dados(df):
     #df_localidade = df[df['localidade'] == st.session_state['localidade_selecionada']]
     #df_localidade = df_localidade[df_localidade['inventariado'] == None]
     df_localidade = df_localidade[['denominacao', 'marca_total', 'modelo_total', 'serie_total', 'status','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'especificacoes','num tombamento', 'localidade']]
-    st.subheader(f"{df_localidade.shape[0]} Bens a Inventariar")    
+    st.subheader(f"{df_localidade.shape[0]} Bens a inventariar em {st.session_state['localidade_selecionada']}")    
     st.dataframe(df_localidade)
 
     
