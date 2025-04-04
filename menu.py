@@ -8,6 +8,7 @@ def ler_base_processada(caminho):
     df = df.set_index('num tombamento',drop=False)
     #num tombamento como object
     df['num tombamento'] = df['num tombamento'].astype(object)
+    df['tombo_antigo'] = df['tombo_antigo'].astype(object)
 
     return df
 
