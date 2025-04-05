@@ -106,6 +106,23 @@ def tela_input_dados(df):
             st.subheader("Mais de um patrimônio encontrado")
             st.write("Selecione o patrimônio desejado:")
             # CONTINUAR LÓGICA DE SELECIONAR POR CHECKBOX DAQUI
+            for index, row in df_resultados_busca.iterrows(): #10 colunas
+                col_check, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11 = st.columns(11)
+                with col_check: #adicionar um checkbox para cada linha encontrada
+                    if st.checkbox(f"{row['num tombamento']}", key=f"check_{index}"):
+                        st.session_state['patrimonio_selecionado'] = row['num tombamento']
+                    col2.write(f"**Descrição:** {row['denominacao']}")
+                
+                    col3.write(f"**Nº Patrimônio:** {row['num tombamento']}")
+                    col4.write(f"**Tombo Antigo:** {row['tombo_antigo']}")
+                    col5.write(f"**Nº Serial:** {row['serie_total']}")
+                    col6.write(f"**Localidade atual:** {row['localidade']}")
+                    col7.write(f"**Marca:** {row['marca_total']}")
+                    col8.write(f"**Modelo:** {row['modelo_total']}")
+                    col9.write(f"**Último levantamento:** {row['ultimo levantamento']}")
+                    col10.write(f"**Status:** {row['status']}")
+                    col11.write(f"**Descrição:** {row['especificacoes']}")
+                    st.divider()
             st.dataframe(df_resultados_busca[['num tombamento', 'tombo_antigo', 'serie_total', 
                                               'denominacao', 'localidade', 'acautelado para', 
                                               'marca_total', 'modelo_total', 'ultimo levantamento', 
