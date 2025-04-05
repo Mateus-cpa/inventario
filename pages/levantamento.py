@@ -66,11 +66,10 @@ def tela_input_dados(df):
         data_inventario = st.date_input("Data do Inventário", dt.date.today()) #talvez não precise por causa do st.session_state('horario_inventário')
         acompanhante = st.text_input("Acompanhante")
 
+    df_resultados_busca = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
     st.subheader("Inserir Dados do Patrimônio")
     col1, col2 = st.columns([0.4,0.6])
     id = col1.text_input("Identificação do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)")
-    if df.index.dtype == 'int64':
-        id = int(id)
     #id = '2010060766' #TIC
     #id = '2010041474' #outro
     # Buscar materiais sem patrimônio não inventariado por suas características
@@ -78,25 +77,25 @@ def tela_input_dados(df):
     
     if id:
         #df_resultados_busca = encontrar_linha_por_id(df, id)
-        df_resultados_busca = df.loc[id].copy()
+        df_resultados_busca = df.loc[int(id)].copy()
         if not df_resultados_busca.empty:
             st.subheader("Patrimônio Encontrado")
             col1, col2, col3, col4 = st.columns(4)
             with col1:
-                st.write(f"**Nº Patrimônio:** {df_resultados_busca['num tombamento'].values[0]}")
-                st.write(f"**Tombo Antigo:** {df_resultados_busca['tombo_antigo'].values[0]}")
-                st.write(f"**Nº Serial:** {df_resultados_busca['serie_total'].values[0]}")
+                st.write(f"**Nº Patrimônio:** {df_resultados_busca['num tombamento']}")
+                st.write(f"**Tombo Antigo:** {df_resultados_busca['tombo_antigo']}")
+                st.write(f"**Nº Serial:** {df_resultados_busca['serie_total']}")
             with col2:
-                st.write(f"**Denominação:** {df_resultados_busca['denominacao'].values[0]}")
-                st.write(f"**Localidade atual:** {df_resultados_busca['localidade'].values[0]}")
-                st.write(f"**Acautelado para:** {df_resultados_busca['acautelado para'].values[0]}")
+                st.write(f"**Denominação:** {df_resultados_busca['denominacao']}")
+                st.write(f"**Localidade atual:** {df_resultados_busca['localidade']}")
+                st.write(f"**Acautelado para:** {df_resultados_busca['acautelado para']}")
             with col3:
-                st.write(f"**Marca:** {df_resultados_busca['marca_total'].values[0]}")
-                st.write(f"**Modelo:** {df_resultados_busca['modelo_total'].values[0]}")
-                st.write(f"**Último levantamento:** {df_resultados_busca['ultimo levantamento'].values[0]}")
+                st.write(f"**Marca:** {df_resultados_busca['marca_total']}")
+                st.write(f"**Modelo:** {df_resultados_busca['modelo_total']}")
+                st.write(f"**Último levantamento:** {df_resultados_busca['ultimo levantamento']}")
             with col4:
-                st.write(f"**Status:** {df_resultados_busca['status'].values[0]}")
-                st.write(f"**Descrição:** {df_resultados_busca['especificacoes'].values[0]}")
+                st.write(f"**Status:** {df_resultados_busca['status']}")
+                st.write(f"**Descrição:** {df_resultados_busca['especificacoes']}")
         else:
             st.write("Patrimônio não encontrado.")
     
@@ -144,11 +143,11 @@ def tela_input_dados(df):
     
     
     # -- Seção Bens inventariados --
-    st.subheader(f"{len()} Bens Levantados em {st.session_state['localidade_selecionada']}")
+    st.subheader(f"{len(df_resultados_busca)} Bens Levantados em {st.session_state['localidade_selecionada']}")
     if df_inventario.empty:
         st.write('Nenhum bem foi adicionado ao inventário ainda.')
     else:
-        st.dataframe(df_inventario)
+        st.dataframe(df_inventario[df_inventario.inventariado.notna()], use_container_width=True)
     
     #Seção Bens acautelados
     st.subheader("Adicionar Bens Acautelados")
