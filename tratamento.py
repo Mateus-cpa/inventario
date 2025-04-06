@@ -210,7 +210,6 @@ def processa_planilha(df):
     df.drop(columns=existing_serie_cols, inplace=True)
     df.drop(columns=existing_marca_cols, inplace=True)
     df.drop(columns=existing_especificacoes_cols, inplace=True)
-    df.drop(columns='index', inplace=True)
 
     # dividir a célula e retornar a última parte após '-' para retitrar a sigla
     df['sigla'] = df['unidade responsavel material'].apply(lambda x: x.split('-')[-1])
@@ -221,9 +220,13 @@ def processa_planilha(df):
     resultados['qtde_final_colunas'] = qtde_colunas_depois
     resultados.to_csv('data_bronze/resultados2.csv')
 
-    #Preencher campos vazios dos campos
-    df['localidade'].fillna('Sem localidade', inplace=True)
-    df['ultimo levantamento'] = df['ultimo levantamento'].fillna("0000 / 2010")  # Repor NaN
+    #transformar colunas em astype(str)
+    colunas_astype = ['localidade','denominacao', 'especificacoes', 'marca_total', 'modelo_total', 'serie_total']
+    df[colunas_astype] = df[colunas_astype].astype(str)
+    
+    #Preencher campos vazios das colunas
+    df['localidade'] = df['localidade'].fillna('Sem localidade', inplace=True) #TypeError: sequence item 0: expected str instance, float found
+    df['ultimo levantamento'] = df['ultimo levantamento'].fillna("0000 / 2010")
     df['ano do levantamento'] = df['ultimo levantamento'].str.split('/').str[-1].str.strip().astype(int)     
     df['modelo_total'] = df['modelo_total'].fillna('Sem modelo')
     df['serie_total'] = df['serie_total'].replace('', 'Sem serial cadastrado')
@@ -235,6 +238,13 @@ def processa_planilha(df):
     localidades = pd.Series(localidades, name='localidade')
     pd.concat([localidades,pd.Series(['Nova localidade'])])
     localidades.to_csv('data_bronze/localidades.csv', index=False, header=False)
+
+    #concatenar textos das colunas de características [denominacao, especificações, marca_total, modelo_total, serie_total] em uma coluna
+    caracteristicas = df['denominacao', 'especificacoes', 'marca_total', 'modelo_total', 'serie_total'].agg(' '.join, axis=1)
+    # remover dados repetidos e salvar csv como lista
+    caracteristicas = caracteristicas.unique()
+    caracteristicas = pd.Series(caracteristicas, name='caracteristicas')
+    caracteristicas.to_csv('data_bronze/caracteristicas.csv', index=False, header=False)
     
     return df
 
