@@ -33,6 +33,7 @@ def pagina_principal(df):
     #retornar a proporção de valores nulos na coluna
     st.subheader('Colunas vazias')
     df_null = df.isnull().sum()/len(df)*100
+    df_null = df_null[df_null > 0]
     df_null = df_null.sort_values(ascending=False)
     st.bar_chart(data=df_null)
 
@@ -40,7 +41,10 @@ def pagina_principal(df):
     coluna = st.selectbox('Selecione a coluna', df.columns)
     col1,col2,col3 = st.columns(3)
     col1.subheader(f'**Tipo de dado:** {df[coluna].dtype}')
-    col2.metric('% de valores nulos', round(df_null[coluna],2))
+    try:
+        col2.metric('% de valores nulos', round(df_null[coluna],2))
+    except KeyError:
+        col2.metric('% de valores nulos', 0.00)
     col3.metric('Aguarda',len(df))
     if df[coluna].dtype == 'int64':
         col1.metric('Mínimo', round(df[coluna].min()))
