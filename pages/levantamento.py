@@ -66,14 +66,23 @@ def tela_input_dados(df):
         acompanhante = st.text_input("Acompanhante")
 
     df_resultados_busca = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
+    
+    # busca de material
     st.subheader("Inserir Dados do Patrimônio")
     col1, col2 = st.columns([0.4,0.6])
     id = col1.text_input("Id. do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)")
-    
     #id = '2010060766' #TIC
     #id = '2010041474' #outro
+    detentor = col2.selectbox('Selecione o detentor', df['acautelado para'].unique(), key="detentor")
     # Buscar materiais sem patrimônio não inventariado por suas características
-    caracteristicas = col2.text_input("Buscar por características")
+    df_caracteristicas = pd.read_csv('data_bronze/caracteristicas.csv')
+    caracteristicas = st.multiselect("Buscar por características",df_caracteristicas)
+    
+    if detentor:
+        if detentor == 'nan':
+            pass
+        else:
+            df_resultados_busca = df_resultados_busca[df['acautelado para'] == detentor]
     
     if id:
         #df_resultados_busca = encontrar_linha_por_id(df, id)
@@ -83,52 +92,58 @@ def tela_input_dados(df):
             df_resultados_busca = df.loc[df['tombo_antigo'] == id].copy()
         except ValueError:
             df_resultados_busca = df.loc[df['serie_total'] == id].copy()
-        if len(df_resultados_busca) == 1:
-            st.subheader("Patrimônio Encontrado")
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.write(f"**Nº Patrimônio:** {df_resultados_busca['num tombamento'].values[0]}")
-                st.write(f"**Tombo Antigo:** {df_resultados_busca['tombo_antigo'].values[0]}")
-                st.write(f"**Nº Serial:** {df_resultados_busca['serie_total'].values[0]}")
-            with col2:
-                st.write(f"**Denominação:** {df_resultados_busca['denominacao'].values[0]}")
-                st.write(f"**Localidade atual:** {df_resultados_busca['localidade'].values[0]}")
-                st.write(f"**Acautelado para:** {df_resultados_busca['acautelado para'].values[0]}")
-            with col3:
-                st.write(f"**Marca:** {df_resultados_busca['marca_total'].values[0]}")
-                st.write(f"**Modelo:** {df_resultados_busca['modelo_total'].values[0]}")
-                st.write(f"**Último levantamento:** {df_resultados_busca['ultimo levantamento'].values[0]}")
-            with col4:
-                st.write(f"**Status:** :red[{df_resultados_busca['status'].values[0]}]")
-                st.write(f"**Descrição:** {df_resultados_busca['especificacoes'].values[0]}")
+    
+        
+    #Exibir resultados de busca
+    if len(df_resultados_busca) == 1:
+        st.subheader("Patrimônio Encontrado")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.write(f"**Nº Patrimônio:** {df_resultados_busca['num tombamento'].values[0]}")
+            st.write(f"**Tombo Antigo:** {df_resultados_busca['tombo_antigo'].values[0]}")
+            st.write(f"**Nº Serial:** {df_resultados_busca['serie_total'].values[0]}")
+        with col2:
+            st.write(f"**Denominação:** {df_resultados_busca['denominacao'].values[0]}")
+            st.write(f"**Localidade atual:** {df_resultados_busca['localidade'].values[0]}")
+            st.write(f"**Acautelado para:** {df_resultados_busca['acautelado para'].values[0]}")
+        with col3:
+            st.write(f"**Marca:** {df_resultados_busca['marca_total'].values[0]}")
+            st.write(f"**Modelo:** {df_resultados_busca['modelo_total'].values[0]}")
+            st.write(f"**Último levantamento:** {df_resultados_busca['ultimo levantamento'].values[0]}")
+        with col4:
+            if df_resultados_busca['status'].values[0] == 'ALIENADO':
+                st.write(f"**Status:** :red[ALIENADO]")
+            else:
+                st.write(f"**Status:** :green[{df_resultados_busca['status'].values[0]}]")
+            st.write(f"**Descrição:** {df_resultados_busca['especificacoes'].values[0]}")
+        
+    elif len(df_resultados_busca) > 1: #exibir dataframe com checkboxs para selecionar o patrimônio desejado
+        st.subheader("Mais de um patrimônio encontrado")
+        st.write("Selecione o patrimônio desejado:")
+        # CONTINUAR LÓGICA DE SELECIONAR POR CHECKBOX DAQUI
+        for index, row in df_resultados_busca.iterrows(): #10 colunas
+            col_check, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11 = st.columns(11)
+            with col_check: #adicionar um checkbox para cada linha encontrada
+                if st.checkbox(f"{row['num tombamento']}", key=f"check_{index}"):
+                    st.session_state['patrimonio_selecionado'] = row['num tombamento']
+                col2.write(f"**Descrição:** {row['denominacao']}")
             
-        elif len(df_resultados_busca) > 1: #exibir dataframe com checkboxs para selecionar o patrimônio desejado
-            st.subheader("Mais de um patrimônio encontrado")
-            st.write("Selecione o patrimônio desejado:")
-            # CONTINUAR LÓGICA DE SELECIONAR POR CHECKBOX DAQUI
-            for index, row in df_resultados_busca.iterrows(): #10 colunas
-                col_check, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11 = st.columns(11)
-                with col_check: #adicionar um checkbox para cada linha encontrada
-                    if st.checkbox(f"{row['num tombamento']}", key=f"check_{index}"):
-                        st.session_state['patrimonio_selecionado'] = row['num tombamento']
-                    col2.write(f"**Descrição:** {row['denominacao']}")
-                
-                    col3.write(f"**Nº Patrimônio:** {row['num tombamento']}")
-                    col4.write(f"**Tombo Antigo:** {row['tombo_antigo']}")
-                    col5.write(f"**Nº Serial:** {row['serie_total']}")
-                    col6.write(f"**Localidade atual:** {row['localidade']}")
-                    col7.write(f"**Marca:** {row['marca_total']}")
-                    col8.write(f"**Modelo:** {row['modelo_total']}")
-                    col9.write(f"**Último levantamento:** {row['ultimo levantamento']}")
-                    col10.write(f"**Status:** {row['status']}")
-                    col11.write(f"**Descrição:** {row['especificacoes']}")
-                    st.divider()
-            st.dataframe(df_resultados_busca[['num tombamento', 'tombo_antigo', 'serie_total', 
-                                              'denominacao', 'localidade', 'acautelado para', 
-                                              'marca_total', 'modelo_total', 'ultimo levantamento', 
-                                              'status', 'especificacoes']], use_container_width=True, hide_index=True)
-        else:
-            st.write("Patrimônio não encontrado.")
+                col3.write(f"**Nº Patrimônio:** {row['num tombamento']}")
+                col4.write(f"**Tombo Antigo:** {row['tombo_antigo']}")
+                col5.write(f"**Nº Serial:** {row['serie_total']}")
+                col6.write(f"**Localidade atual:** {row['localidade']}")
+                col7.write(f"**Marca:** {row['marca_total']}")
+                col8.write(f"**Modelo:** {row['modelo_total']}")
+                col9.write(f"**Último levantamento:** {row['ultimo levantamento']}")
+                col10.write(f"**Status:** {row['status']}")
+                col11.write(f"**Descrição:** {row['especificacoes']}")
+                st.divider()
+        st.dataframe(df_resultados_busca[['num tombamento', 'tombo_antigo', 'serie_total', 
+                                            'denominacao', 'localidade', 'acautelado para', 
+                                            'marca_total', 'modelo_total', 'ultimo levantamento', 
+                                            'status', 'especificacoes']], use_container_width=True, hide_index=True)
+    else:
+        st.write("Patrimônio não encontrado.")
     
     
     
@@ -171,17 +186,19 @@ def tela_input_dados(df):
         st.write('Nenhum bem foi adicionado ao inventário ainda.')
     else:
         st.dataframe(df_inventario[df_inventario.inventariado.notna()], use_container_width=True)
-    
+    st.divider()
+
     #Seção Bens acautelados
     st.subheader("Adicionar Bens Acautelados")
-    adicionar_acautelados = st.radio("Adicionar bens acautelados", ["Sim", "Não"], key="acautelados")
+    adicionar_acautelados = st.radio("Adicionar mais bens", ["Sim", "Não"], key="finalizar_levantamento")
     if adicionar_acautelados == "Não":
         if st.button("Concluir Levantamento"):
             st.success("Levantamento concluído!")
             # Adicionar lógica para salvar os dados do inventário no banco de dados
-    else:
-        st.warning("Marque 'Não' para finalizar inventário e habilitar a conclusão.")
-
+        
+        
+            
+    st.divider()
     # Listar bens a inventariar
     df_localidade = df[df['localidade'].isin(list(localidade_escolhida))]
     #df_localidade = df[df['localidade'] == st.session_state['localidade_selecionada']]
