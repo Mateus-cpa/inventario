@@ -22,51 +22,20 @@ def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> int | None:
     Returns:
         O índice da linha onde o ID foi encontrado. Retorna None se o ID não for encontrado.
     """
-
-    # Tenta encontrar na coluna 'num tombamento' como string
+    # retorna lista de index com todos resultados que tenham id procurando em 'num tombamento', 'tombo_antigo' e 'serie_total'
     try:
-        indices = df[df['num tombamento'].astype(str) == id_busca].index.tolist()
-        if indices:
-            return indices
+        df_resultados_busca = df[df['num tombamento'].astype(str) == str(id_busca)]
     except KeyError:
-        print("A coluna 'num tombamento' não existe no DataFrame.")
-    except Exception as e:
-        print(f"Erro ao buscar em 'num tombamento' como string: {e}")
-
-    # Tenta encontrar na coluna 'num tombamento' como inteiro
-    try:
-        try:
-            id_int = int(id_busca)
-            indices = df[df['num tombamento'] == id_int].index.tolist()
-            if indices:
-                return indices
-        except ValueError:
-            # id_busca não é um inteiro, então ignora
-            pass
-    except KeyError:
-        print("A coluna 'num tombamento' não existe no DataFrame.")
-    except Exception as e:
-        print(f"Erro ao buscar em 'num tombamento' como inteiro: {e}")
-
-    # Tenta encontrar na coluna 'tombo_antigo' como string
-    try:
-        indices = df[df['tombo_antigo'].astype(str) == id_busca].index.tolist()
-        if indices:
-            return indices
-    except KeyError:
-        print("A coluna 'tombo_antigo' não existe no DataFrame.")
-    except Exception as e:
-        print(f"Erro ao buscar em 'tombo_antigo': {e}")
-
-    # Tenta encontrar na coluna 'serie_total' como string
-    try:
-        indices = df[df['serie_total'].astype(str) == id_busca].index.tolist()
-        if indices:
-            return indices[0]
-    except KeyError:
-        print("A coluna 'serie_total' não existe no DataFrame.")
-    except Exception as e:
-        print(f"Erro ao buscar em 'serie_total': {e}")
+        df_resultados_busca = df[df['tombo_antigo'].astype(str) == str(id_busca)]
+    except ValueError:
+        df_resultados_busca = df[df['serie_total'].astype(str) == str(id_busca)]
+    index_resultados = df_resultados_busca.index.tolist()
+    if len(index_resultados) == 1:
+        st.session_state['inventario'].append(df_resultados_busca['num tombamento'].values[0])
+    if len(index_resultados) > 0:
+        return index_resultados
+    else:
+        st.warning("Patrimônio não encontrado.")
 
     return None
 
@@ -109,7 +78,7 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
         st.subheader("Mais de um patrimônio encontrado")
         st.write("Selecione o patrimônio desejado:")
         # CONTINUAR LÓGICA DE SELECIONAR POR CHECKBOX DAQUI
-        for index, row in df_resultados_busca.iterrows(): #10 colunas
+        for index, row in df.loc[[resultados_busca]].iterrows():
             col_check, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11 = st.columns(11)
             with col_check: #adicionar um checkbox para cada linha encontrada
                 if st.checkbox(f"{row['num tombamento']}", key=f"check_{index}"):
@@ -152,6 +121,7 @@ def adicionar_ao_inventario(item):
 
 # --- Tela de Input de Dados ---
 def tela_input_dados(df):
+    colunas_de_interesse = ['denominacao', 'marca_total', 'modelo_total', 'serie_total', 'status', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'especificacoes','num tombamento']
     st.title("Levantamento Patrimonial")
     if 'localidade_selecionada' not in st.session_state:
         st.session_state['localidade_selecionada'] = None
@@ -173,7 +143,7 @@ def tela_input_dados(df):
             st.session_state['localidade_selecionada'] = localidade_escolhida
 
     with col2:
-        data_inventario = st.date_input("Data do Inventário", dt.date.today()) #talvez não precise por causa do st.session_state('horario_inventário')
+        #data_inventario = st.date_input("Data do Inventário", dt.date.today()) #talvez não precise por causa do st.session_state('horario_inventário')
         acompanhante = st.text_input("Acompanhante")
 
     df_resultados_busca = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
@@ -238,20 +208,19 @@ def tela_input_dados(df):
     
     
     # -- Seção Bens inventariados --
-    st.subheader(f"{len(df_resultados_busca)} Bens Levantados em {st.session_state['localidade_selecionada']}")
+    st.subheader(f"{len(st.session_state['inventario'])} Bens Levantados em {st.session_state['localidade_selecionada']}")
     if df_inventario.empty:
         st.write('Nenhum bem foi adicionado ao inventário ainda.')
     else:
-        st.dataframe(df_inventario[df_inventario.inventariado.notna()], use_container_width=True)
+        st.data_editor(df[colunas_de_interesse].loc[st.session_state['inventario']], use_container_width=True)
     st.divider()
     
-    # Listar bens a inventariar
+    # -- Seção bens a inventariar --
     df_localidade = df[df['localidade'].isin(list(localidade_escolhida))]
-    #df_localidade = df[df['localidade'] == st.session_state['localidade_selecionada']]
-    #df_localidade = df_localidade[df_localidade['inventariado'] == None]
-    df_localidade = df_localidade[['denominacao', 'marca_total', 'modelo_total', 'serie_total', 'status','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'especificacoes','num tombamento', 'localidade']]
+    #excluir os bens que já foram inventariados
+    df_localidade = df_localidade[df_localidade['num tombamento'].isin(st.session_state['inventario']) == False]
     st.subheader(f"{df_localidade.shape[0]} Bens a inventariar em {st.session_state['localidade_selecionada']}")    
-    st.dataframe(df_localidade)
+    st.dataframe(df_localidade[colunas_de_interesse], use_container_width=True)
 
     st.divider()
 
