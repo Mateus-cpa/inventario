@@ -221,11 +221,11 @@ def processa_planilha(df):
     resultados.to_csv('data_bronze/resultados2.csv')
 
     #transformar colunas em astype(str)
-    colunas_astype = ['localidade','denominacao', 'especificacoes', 'marca_total', 'modelo_total', 'serie_total']
+    colunas_astype = ['denominacao', 'especificacoes', 'marca_total', 'modelo_total', 'serie_total']
     df[colunas_astype] = df[colunas_astype].astype(str)
     
     #Preencher campos vazios das colunas
-    df['localidade'] = df['localidade'].fillna('Sem localidade', inplace=True) #TypeError: sequence item 0: expected str instance, float found
+    df['localidade'] = df['localidade'].fillna('Sem localidade') #TypeError: sequence item 0: expected str instance, float found
     df['ultimo levantamento'] = df['ultimo levantamento'].fillna("0000 / 2010")
     df['ano do levantamento'] = df['ultimo levantamento'].str.split('/').str[-1].str.strip().astype(int)     
     df['modelo_total'] = df['modelo_total'].fillna('Sem modelo')
