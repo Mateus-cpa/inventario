@@ -59,6 +59,7 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
             st.write(f"**Localidade atual:** {df.loc[resultados_busca,'localidade'].values[0]}")
             if df.loc[resultados_busca,'status'].values[0] == 'ACAUTELADO':
                 st.write(f"**Acautelado para:** {df.loc[resultados_busca,'acautelado para'].values[0]}")
+            st.write(f"**Valor:** {df.loc[resultados_busca,'valor'].values[0]}")
         with col3:
             st.write(f"**Marca:** {df.loc[resultados_busca,'marca_total'].values[0]}")
             if pd.notna(df.loc[resultados_busca,'modelo_total'].values[0]):
@@ -121,7 +122,7 @@ def adicionar_ao_inventario(item):
 
 # --- Tela de Input de Dados ---
 def tela_input_dados(df):
-    colunas_de_interesse = ['denominacao', 'marca_total', 'modelo_total', 'serie_total', 'status', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'especificacoes','num tombamento']
+    colunas_de_interesse = ['denominacao', 'marca_total', 'modelo_total', 'serie_total', 'status', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'valor','especificacoes','num tombamento']
     st.title("Levantamento Patrimonial")
     if 'localidade_selecionada' not in st.session_state:
         st.session_state['localidade_selecionada'] = None
