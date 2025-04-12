@@ -243,20 +243,30 @@ def salva_estatisticas_levantamento(df, nome_base="historico_levantamento"):
     ano_atual = hoje.year # 2025
     nome_arquivo = f"{nome_base}_{ontem}.json"
     
-    #Filtrar por ano levantamento no atual
+    # 1. Calcular a quantidade total por unidade (qtde_total)
+    
+    df_total = df.groupby('sigla')['num tombamento'].size().reset_index(name='qtde_total').set_index('sigla')
+
+    # 2. Filtrar por ano de levantamento no ano atual
     df_levantamento_atual = df[df['ano do levantamento'] == ano_atual].copy()
     print(f"Quantidade de bens levantados no ano atual: {df_levantamento_atual.shape[0]}")
-    
-    #agrupar quantidade por unidade e ano do levantamento
-    df_levantamento_atual = df_levantamento_atual.groupby(['sigla']).size().reset_index(name='quantidade')
-    df_levantamento_atual = df_levantamento_atual.set_index('sigla')
+
+    # 3. Agrupar a quantidade levantada no ano atual por unidade (qtde_levantado)
+    df_levantamento_atual = df_levantamento_atual.groupby(['sigla']).size().reset_index(name='qtde_levantado').set_index('sigla')
+
+    # 4. Mergir os DataFrames para ter qtde_total e qtde_levantado na mesma tabela
+    df_final = df_total.merge(df_levantamento_atual, how='left', left_index=True, right_index=True).fillna(0)
+
+    # 5. Calcular o percentual levantado (perc_levantado)
+    df_final['perc_levantado'] = df_final['qtde_levantado'] / df_final['qtde_total']
+
 
     # salvar em json ou csv
     if not df_levantamento_atual.empty:
-        df_levantamento_atual.to_json(f'data_silver/{nome_arquivo}', orient='index', indent=4)
-        print(f"Dados do levantamento de {df_levantamento_atual.columns[0]} salvos em {nome_arquivo}")
+        df_final.to_json(f'data_silver/{nome_arquivo}', orient='index', indent=4)
+        print(f"Dados do levantamento de {df_final.columns[0]} salvos em {nome_arquivo}")
     else:
-        print(f"Não há dados para salvar para {df_levantamento_atual.columns[0]}.")
+        print(f"Não há dados para salvar para {df_final.columns[0]}.")
     
 
 
