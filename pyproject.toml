@@ -6,11 +6,11 @@ authors = ["Mateus Pinheiro <mateus.mcpa@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.13.0"
 pandas = "^2.2.3"
 streamlit = "^1.44.0"
 openpyxl = "^3.1.5"
-calamine = "^0.9.1" # Verifique a versão mais recente no PyPI
+python-calamine = "^0.10.0" # Verifique a versão mais recente no PyPI
 tqdm = "^4.66.2"   # Verifique a versão mais recente no PyPI
 
 [build-system]
