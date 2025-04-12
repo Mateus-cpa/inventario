@@ -1,6 +1,7 @@
 #importações
 import pandas as pd
-#from tqdm import tqdm
+from tqdm import tqdm
+#from python_calamine.pandas import pandas_monkeypatch
 #import openpyxl
 import os
 #import datetime as dt
@@ -10,7 +11,7 @@ def pega_tamanho_em_mb(caminho: str):
     
 
 def ler_excel(caminho):
-    resultados = pd.DataFrame()
+    resultados = {}
     tamanho_inicial = pega_tamanho_em_mb(caminho=caminho)
     resultados['tamanho_inicial_mb'] = tamanho_inicial
     try:
@@ -25,52 +26,32 @@ def ler_excel(caminho):
     resultados.to_csv('data_bronze/resultados_iniciais.csv')
     return df
 
-#segunda tentativa de leitura
-def ler_excel_com_progresso_openpyxl(caminho, chunk_size=1000):
-    total_rows = 0
+def ler_arquivo_xlsx_com_progresso(caminho_arquivo):
+    # Inicializa o progresso
+    tqdm.pandas(desc="Lendo arquivo Excel")
+    
+    # Lê o arquivo Excel
     try:
-        workbook = openpyxl.load_workbook(caminho, read_only=True)
-        sheet = workbook.active
-        total_rows = sheet.max_row - 1  # Desconta o cabeçalho
-        workbook.close()
-        print(f"Total rows: {total_rows}")
+        df = pd.read_excel(caminho_arquivo, engine='calamine')
     except FileNotFoundError:
-        print(f"Arquivo não encontrado: {caminho}")
+        print("Arquivo não encontrado.")
         return None
     except Exception as e:
-        print(f"Erro ao obter o número de linhas de {caminho}: {e}")
-        # Se falhar ao obter o número de linhas, lemos sem barra de progresso detalhada
-        return pd.read_excel(caminho)
+        print(f"Ocorreu um erro ao ler o arquivo: {e}")
+        return None
 
-    all_data = []
-    with tqdm(total=total_rows, unit='linha', desc="Lendo Excel") as pbar:
-        workbook = openpyxl.load_workbook(caminho, read_only=True)
-        sheet = workbook.active
-        header = [cell.value for cell in sheet[1]]  # Assume que a primeira linha é o cabeçalho
-        print(f"Header: {header}")
-
-        for i in range(2, total_rows + 2, chunk_size):
-            print(f"Lendo chunk começando na linha: {i}")
-            max_row = min(i + chunk_size - 1, total_rows + 1)
-            chunk_data = []
-            for row in sheet.iter_rows(min_row=i, max_row=max_row, values_only=True):
-                chunk_data.append(row)
-
-            if chunk_data:
-                df_chunk = pd.DataFrame(chunk_data, columns=header)
-                all_data.append(df_chunk)
-                pbar.update(len(df_chunk))
-                print(f"Chunk lido com {len(df_chunk)} linhas.")
-            else:
-                print(f"Nenhum dado lido no chunk começando na linha: {i}")
-
-        workbook.close()
-
-    if not all_data:
-        print("Nenhum dado foi lido do arquivo.")
-
-    df = pd.concat(all_data)
+    # Exibe o progresso da leitura
+    for _ in tqdm(range(len(df)), desc="Processando"):
+        pass
+    
     return df
+
+def repor_virgula_por_ponto(valor):
+   if isinstance(valor, str):
+    novo_valor = valor.replace('.', '').replace(',', '.')
+    return novo_valor
+   else:
+    return valor
 
 def processa_planilha(df):    
     #configura índice
@@ -240,18 +221,21 @@ def processa_planilha(df):
     localidades.to_csv('data_bronze/localidades.csv', index=False, header=False)
 
     #concatenar textos das colunas de características [denominacao, especificações, marca_total, modelo_total, serie_total] em uma coluna
-    caracteristicas = df['denominacao', 'especificacoes', 'marca_total', 'modelo_total', 'serie_total'].agg(' '.join, axis=1)
+    df['caracteristicas'] = df[['denominacao', 'especificacoes', 'marca_total', 'modelo_total', 'serie_total']].agg(' '.join, axis=1)
     # remover dados repetidos e salvar csv como lista
-    caracteristicas = caracteristicas.unique()
+    caracteristicas = df['caracteristicas'].unique().tolist()
     caracteristicas = pd.Series(caracteristicas, name='caracteristicas')
     caracteristicas.to_csv('data_bronze/caracteristicas.csv', index=False, header=False)
+
+    #trnasforma valores numéricos em float -> '.' => ''' e ',' => '.'
+    df['valor_atual_tratado'] = df['valor'].apply(lambda x: repor_virgula_por_ponto(x))
     
     return df
 
 if __name__ == '__main__':
     CAMINHO = 'data/lista_bens.xlsx'
-    df_lista_materiais = ler_excel(CAMINHO)
-    #df_lista_materiais = ler_excel_com_progresso_openpyxl(CAMINHO, chunk_size=1000) #ValueError: No objects to concatenate
+    #df_lista_materiais = ler_excel(CAMINHO)
+    df_lista_materiais = ler_arquivo_xlsx_com_progresso(caminho_arquivo=CAMINHO)
     
     df_processado = processa_planilha(df_lista_materiais)
     df_processado.to_csv('data_bronze/lista_bens-processado.csv')
