@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from menu import ler_base_processada
+import os
 
 def pagina_principal(df):
     """Configura as propriedades da página no Streamlit."""
@@ -42,20 +43,29 @@ def pagina_principal(df):
     col1,col2,col3 = st.columns(3)
     col1.subheader(f'**Tipo de dado:** {df[coluna].dtype}')
     try:
-        col2.metric('% de valores nulos', round(df_null[coluna],2))
+        col1.metric('% de valores nulos', round(df_null[coluna],2))
     except KeyError:
-        col2.metric('% de valores nulos', 0.00)
-    col3.metric('Aguarda',len(df))
-    if df[coluna].dtype == 'int64':
-        col1.metric('Mínimo', round(df[coluna].min()))
-        col2.metric('Mediana', round(df[coluna].median()))
-        col2.metric('Média', round(df[coluna].mean()))
-        col3.metric('Máximo', round(df[coluna].max()))
-    #grafico para distribuição pela coluna selecionada de df
+        col1.metric('% de valores nulos', 0.00)
+    
+    if (df[coluna].dtype == 'int64' or df[coluna].dtype == 'float64'):
+        col3.metric('Mínimo', round(df[coluna].min(),2))
+        col2.metric('Mediana', round(df[coluna].median(),2))
+        col2.metric('Média', round(df[coluna].mean(),2))
+        col3.metric('Máximo', round(df[coluna].max(),2))
+
+    st.divider()    
+    #compara tamanho em MB de planilha data e data_bronze
+    st.subheader('Comparativo de tamanhos em MB')
+    tamanho_inicial_mb = os.path.getsize('data/lista_bens.xlsx') / (1024 * 1024)
+    tamanho_final_mb = os.path.getsize('data_bronze/lista_bens-processado.csv') / (1024 * 1024)
+    col1, col2, col3 = st.columns(3)
+    col1.metric('Inicial', round(tamanho_inicial_mb,2))
+    col2.metric('Final', round(tamanho_final_mb,2))
+    col3.metric('Redução (%)', round((tamanho_inicial_mb - tamanho_final_mb)/tamanho_inicial_mb,2))
     
     
 
 if __name__ == '__main__':
-    CAMINHO_ARQ_PROCESSADO = 'data_bronze/lista_bens-processado.csv'
+    CAMINHO_ARQ_PROCESSADO = 'data_bronze\lista_bens-processado.csv'
     df = ler_base_processada(CAMINHO_ARQ_PROCESSADO)
     pagina_principal(df)
