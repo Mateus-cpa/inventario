@@ -1,32 +1,22 @@
-#importações
 import pandas as pd
 from tqdm import tqdm
 #from python_calamine.pandas import pandas_monkeypatch
-#import openpyxl
+#from openpyxl.workbook import Workbook
 import os
-#import datetime as dt
+from datetime import datetime, timedelta
+import json
+from datetime import datetime
 
 def pega_tamanho_em_mb(caminho: str):
     return os.path.getsize(caminho) / (1024 * 1024)
     
-
-def ler_excel(caminho):
-    resultados = {}
-    tamanho_inicial = pega_tamanho_em_mb(caminho=caminho)
-    resultados['tamanho_inicial_mb'] = tamanho_inicial
-    try:
-        df = pd.read_excel(caminho)        
-    except FileNotFoundError:
-        print("Arquivo não encontrado.")
-        return None
-    except Exception as e:
-        print(f"Ocorreu um erro ao ler o arquivo: {e}")
-        return None
-    resultados['qtde_colunas_inicial'] = df.shape[1]
-    resultados.to_csv('data_bronze/resultados_iniciais.csv')
-    return df
-
 def ler_arquivo_xlsx_com_progresso(caminho_arquivo):
+    resultados = {}
+    tamanho_inicial = pega_tamanho_em_mb(caminho=caminho_arquivo)
+    resultados['tamanho_inicial_mb'] = tamanho_inicial
+    with open('data_bronze/resultados.json', 'w') as f:
+        json.dump(resultados, f, indent=4)
+    
     # Inicializa o progresso
     tqdm.pandas(desc="Lendo arquivo Excel")
     
@@ -54,10 +44,14 @@ def repor_virgula_por_ponto(valor):
     return valor
 
 def processa_planilha(df):    
+    with open('data_bronze/resultados.json', 'r') as f:
+        resultados = json.load(f)
+    
+    resultados['qtde_colunas_inicial'] = df.shape[1]
+    resultados['qtde_de_linhas_inicial'] = df.shape[0]
+
     #configura índice
-    resultados = pd.DataFrame()
-    qtde_bens = len(df.index)
-    resultados['qtde_bens'] = qtde_bens
+    df.set_index('num tombamento', inplace=True, drop=False)    
     
     #checar se colunas de números de série existem na planilha
     cols_to_check = ['imei','n de serie', 'numero de serie',
@@ -193,14 +187,18 @@ def processa_planilha(df):
     df.drop(columns=existing_especificacoes_cols, inplace=True)
 
     # dividir a célula e retornar a última parte após '-' para retitrar a sigla
-    df['sigla'] = df['unidade responsavel material'].apply(lambda x: x.split('-')[-1])
+    df['sigla'] = df['unidade responsavel material'].apply(lambda x: x.split('-')[-1].strip())
 
     #trazer o tombo novo para a 1ª coluna (para o PROCV do excel)
     df = df.reindex(columns=['num tombamento'] + [col for col in df.columns if col != 'num tombamento'])
-    qtde_colunas_depois = len(df.columns)
-    resultados['qtde_final_colunas'] = qtde_colunas_depois
-    resultados.to_csv('data_bronze/resultados2.csv')
+    
+    # salvar dados em resultados
+    resultados['qtde_colunas_final'] = df.shape[1]
+    resultados['qtde_de_linhas_final'] = df.shape[0]
+    with open('data_bronze/resultados.json', 'w') as f:
+        json.dump(resultados, f, indent=4) 
 
+    
     #transformar colunas em astype(str)
     colunas_astype = ['denominacao', 'especificacoes', 'marca_total', 'modelo_total', 'serie_total']
     df[colunas_astype] = df[colunas_astype].astype(str)
@@ -232,14 +230,64 @@ def processa_planilha(df):
     
     return df
 
+def salva_estatisticas_levantamento(df, nome_base="historico_levantamento"):
+    """
+    Salva o histórico de levantamento em um arquivo JSON por dia.
+
+    Args:
+        df_processado (pd.DataFrame): DataFrame processado com os dados do dia anterior.
+        nome_base (str): Base do nome do arquivo JSON.
+    """
+    hoje = datetime.now().date()
+    ontem = hoje - timedelta(days=1) # 2025-04-11    
+    ano_atual = hoje.year # 2025
+    nome_arquivo = f"{nome_base}_{ontem}.json"
+    
+    #Filtrar por ano levantamento no atual
+    df_levantamento_atual = df[df['ano do levantamento'] == ano_atual].copy()
+    print(f"Quantidade de bens levantados no ano atual: {df_levantamento_atual.shape[0]}")
+    
+    #agrupar quantidade por unidade e ano do levantamento
+    df_levantamento_atual = df_levantamento_atual.groupby(['sigla']).size().reset_index(name='quantidade')
+    df_levantamento_atual = df_levantamento_atual.set_index('sigla')
+
+    # salvar em json ou csv
+    if not df_levantamento_atual.empty:
+        df_levantamento_atual.to_json(f'data_silver/{nome_arquivo}', orient='index', indent=4)
+        print(f"Dados do levantamento de {df_levantamento_atual.columns[0]} salvos em {nome_arquivo}")
+    else:
+        print(f"Não há dados para salvar para {df_levantamento_atual.columns[0]}.")
+    
+
+
+    pass
+
+def salva_dataframe():
+    df_processado.to_csv('data_bronze/lista_bens-processado.csv')
+    #df_processado.to_excel('data_bronze/lista_bens-processado.xlsx', engine='openpyxl')
+    with open('data_bronze/resultados.json', 'r') as f:
+        resultados = json.load(f)
+    resultados['tamanho_final_csv_mb'] = pega_tamanho_em_mb(caminho='data_bronze/lista_bens-processado.csv')
+    #resultados['tamanho_final_xlsx_mb'] = pega_tamanho_em_mb(caminho='data_bronze/lista_bens-processado.xlsx')
+    resultados['data_processamento'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    with open('data_bronze/resultados.json', 'w') as f:
+        json.dump(resultados, f, indent=4)
+
+
+
 if __name__ == '__main__':
     CAMINHO = 'data/lista_bens.xlsx'
-    #df_lista_materiais = ler_excel(CAMINHO)
+    print('Lendo arquivo Excel...')
     df_lista_materiais = ler_arquivo_xlsx_com_progresso(caminho_arquivo=CAMINHO)
-    
+    print('Processando planilha...')
     df_processado = processa_planilha(df_lista_materiais)
-    df_processado.to_csv('data_bronze/lista_bens-processado.csv')
-    # gerar estatísticas dos stats após o processamento, comparando arquivo anterior e posterior (nº colunas, tamanho do arquivo, etc.)
-    #guardar a quantidade de último levantamento e ano do levantamento e 
-    # adicionar em arquivo de controle_levantamento (dia, unidade, quantidade de bens levantados) para poder gerar um gráfico de evolução
+    print('Salvando estatísticas de levantamento...')
+    salva_estatisticas_levantamento(df_processado)
+    print('Salvando planilha processada...')
+    salva_dataframe()
+
+    
+    
+    
+    
 
