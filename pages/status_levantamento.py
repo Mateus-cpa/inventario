@@ -15,7 +15,7 @@ def pagina_principal(df):
 
     #variaveis
     df_ativos = df[df['status'].isin(['EFETIVADO','ACAUTELADO','BEM NÃO LOCALIZADO'])]
-    qtde_bens_inventariados = df_ativos[df_ativos['ano do levantamento'] == dt.date.today().year].shape[0]
+    
     # gráfico levantamento geral em relação ao estimado
     st.title('Status da Base Processada')
 
@@ -30,6 +30,9 @@ def pagina_principal(df):
         #mostrar gráfico de levantamento geral em relação ao estimado
         #ler histórico de levantamentos em data_silver
         # criar reta de estimativa de levantamento por dia sendo 312 por dia a partir de 14/04/2025
+
+    #variável
+    qtde_bens_inventariados = df_ativos[df_ativos['ano do levantamento'] == dt.date.today().year].shape[0]
 
     col1, col2, col3 = st.columns(3)
     col1.metric('Qtd. de Bens', df_ativos.shape[0])
