@@ -50,9 +50,6 @@ def processa_planilha(df):
     resultados['qtde_colunas_inicial'] = df.shape[1]
     resultados['qtde_de_linhas_inicial'] = df.shape[0]
 
-    #configura índice
-    df.set_index('num tombamento', inplace=True, drop=False)    
-    
     #checar se colunas de números de série existem na planilha
     cols_to_check = ['imei','n de serie', 'numero de serie',
                 'numero de serie.1', 'numero de serie  ',
@@ -189,8 +186,7 @@ def processa_planilha(df):
     # dividir a célula e retornar a última parte após '-' para retitrar a sigla
     df['sigla'] = df['unidade responsavel material'].apply(lambda x: x.split('-')[-1].strip())
 
-    #trazer o tombo novo para a 1ª coluna (para o PROCV do excel)
-    df = df.reindex(columns=['num tombamento'] + [col for col in df.columns if col != 'num tombamento'])
+   
     
     # salvar dados em resultados
     resultados['qtde_colunas_final'] = df.shape[1]
@@ -198,7 +194,15 @@ def processa_planilha(df):
     with open('data_bronze/resultados.json', 'w') as f:
         json.dump(resultados, f, indent=4) 
 
+    #trazer o tombo novo para a 1ª coluna (para o PROCV do excel)
+    df = df.reindex(columns=['num tombamento'] + [col for col in df.columns if col != 'num tombamento'])
     
+    #configura índice
+    df.set_index('num tombamento', inplace=True, drop=False)    
+    if 'num tombamento.1' in df.columns:
+        #renomeia a coluna 'num tombamento.1' para 'num_tombamento'
+        df.rename(columns={'num tombamento.1': 'num_tombamento'}, inplace=True)
+
     #transformar colunas em astype(str)
     colunas_astype = ['denominacao', 'especificacoes', 'marca_total', 'modelo_total', 'serie_total']
     df[colunas_astype] = df[colunas_astype].astype(str)
