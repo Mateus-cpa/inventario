@@ -24,14 +24,14 @@ def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> int | None:
     """
     # retorna lista de index com todos resultados que tenham id procurando em 'num tombamento', 'tombo_antigo' e 'serie_total'
     try:
-        df_resultados_busca = df[df['num tombamento'].astype(str) == str(id_busca)]
+        df_resultados_busca = df[df['num tombamento.1'].astype(str) == str(id_busca)]
     except KeyError:
         df_resultados_busca = df[df['tombo_antigo'].astype(str) == str(id_busca)]
     except ValueError:
         df_resultados_busca = df[df['serie_total'].astype(str) == str(id_busca)]
     index_resultados = df_resultados_busca.index.tolist()
     if len(index_resultados) == 1:
-        st.session_state['inventario'].append(df_resultados_busca['num tombamento'].values[0])
+        st.session_state['inventario'].append(df_resultados_busca['num tombamento.1'].values[0])
     if len(index_resultados) > 0:
         return index_resultados
     else:
@@ -50,7 +50,7 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
     if len(resultados_busca) == 1:
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.write(f"**Nº Patrimônio:** {df.loc[resultados_busca,'num tombamento'].values[0]}")
+            st.write(f"**Nº Patrimônio:** {df.loc[resultados_busca,'num tombamento.1'].values[0]}")
             if pd.notna(df.loc[resultados_busca,'tombo_antigo'].values[0]):
                 st.write(f"**Tombo Antigo:** {df.loc[resultados_busca,'tombo_antigo'].values[0]}")
             st.write(f"**Nº Serial:** {df.loc[resultados_busca,'serie_total'].values[0]}")
@@ -68,6 +68,11 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
                 st.write(f"**Levantamento:** :red[{df.loc[resultados_busca,'ultimo levantamento'].values[0]}]")
             else:
                 st.write(f"**Levantamento:** :green[{df.loc[resultados_busca,'ultimo levantamento'].values[0]}]")
+            if df.loc[resultados_busca,'localidade'].values[0] == st.session_state['localidade_selecionada'][0]:
+                st.write(f"**Divergência de localidade:** :green[{"não"}]")
+            else:
+                st.write(f"**Divergência de localidade:** :red[{"SIM"}]")
+                
         with col4:
             if df.loc[resultados_busca,'status'].values[0] == 'ALIENADO':
                 st.write(f"**Status:** :red[ALIENADO]")
@@ -122,14 +127,14 @@ def adicionar_ao_inventario(item):
 
 # --- Tela de Input de Dados ---
 def tela_input_dados(df):
-    colunas_de_interesse = ['denominacao', 'marca_total', 'modelo_total', 'serie_total', 'status', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'valor','especificacoes','num tombamento']
+    colunas_de_interesse = ['denominacao', 'marca_total', 'modelo_total', 'serie_total', 'status', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'valor','especificacoes','num tombamento.1']
     st.title("Levantamento Patrimonial")
     if 'localidade_selecionada' not in st.session_state:
         st.session_state['localidade_selecionada'] = None
     if 'inventario' not in st.session_state:
         st.session_state['inventario'] = []
     df_inventario = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
-    df_inventario['num tombamento'] = df['num tombamento']
+    df_inventario['num tombamento'] = df.index
     col1, col2 = st.columns(2)
     with col1:
         localidades = obter_localidades()
@@ -218,8 +223,9 @@ def tela_input_dados(df):
     
     # -- Seção bens a inventariar --
     df_localidade = df[df['localidade'].isin(list(localidade_escolhida))]
+    df_localidade.set_index('num tombamento.1', inplace=True,drop=False)
     #excluir os bens que já foram inventariados
-    df_localidade = df_localidade[df_localidade['num tombamento'].isin(st.session_state['inventario']) == False]
+    df_localidade = df_localidade[df_localidade['num tombamento.1'].isin(st.session_state['inventario']) == False]
     st.subheader(f"{df_localidade.shape[0]} Bens a inventariar em {st.session_state['localidade_selecionada']}")    
     st.dataframe(df_localidade[colunas_de_interesse], use_container_width=True)
 
