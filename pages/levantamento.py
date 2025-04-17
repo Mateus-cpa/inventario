@@ -8,37 +8,56 @@ def obter_localidades():
     localidades = pd.read_csv("data_bronze/localidades.csv").values.tolist()
     return localidades
 
-def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> int | None:
+def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> list[int] | None:
     """
-    Busca um ID em diferentes colunas de um DataFrame e retorna o índice da linha correspondente.
+    Busca um ID em diferentes colunas de um DataFrame e retorna o(s) índice(s) da linha correspondente.
 
-    A busca é realizada nas colunas 'num tombamento' (testando como string e inteiro),
-    'tombo_antigo' e 'serie_total'.
+    A busca é realizada nas colunas 'num tombamento', 'tombo_antigo' e 'serie_total'.
 
     Args:
         df: O DataFrame pandas onde a busca será realizada.
         id_busca: A string ID a ser procurada.
 
     Returns:
-        O índice da linha onde o ID foi encontrado. Retorna None se o ID não for encontrado.
+        Uma lista de índices onde o ID foi encontrado. Retorna None se o ID não for encontrado.
     """
-    # retorna lista de index com todos resultados que tenham id procurando em 'num tombamento', 'tombo_antigo' e 'serie_total'
     try:
-        df_resultados_busca = df[df['num tombamento'].astype(str) == str(id_busca)]
-    except KeyError:
-        df_resultados_busca = df[df['tombo_antigo'].astype(str) == str(id_busca)]
-    except ValueError:
-        df_resultados_busca = df[df['serie_total'].astype(str) == str(id_busca)]
-    df_resultados_busca.set_index('num tombamento', inplace=True, drop=False)
-    index_resultados = df_resultados_busca.index.tolist()
-    if len(index_resultados) == 1:
-        st.session_state['inventario'].append(df_resultados_busca['num tombamento'].values[0])
-    if len(index_resultados) > 0:
-        return index_resultados
-    else:
-        st.warning("Patrimônio não encontrado.")
+        # Busca em todas as colunas relevantes
+        df.set_index('num tombamento', inplace=True, drop=False)
+        resultados = df[
+            (df['num tombamento'].astype(str) == str(id_busca)) |
+            (df['tombo_antigo'].astype(str) == str(id_busca)) |
+            (df['serie_total'].astype(str) == str(id_busca))
+        ]
+        
+        if resultados.empty:
+            st.warning("Patrimônio não encontrado.")
+            return None
 
-    return None
+        # Obtém os índices dos resultados encontrados
+        indices = resultados.index.tolist()
+
+        if len(indices) == 1:
+            # Adiciona diretamente ao inventário se houver apenas um resultado
+            st.session_state['inventario'].append(resultados.iloc[0]['num tombamento'])
+            st.success(f"Patrimônio {resultados.iloc[0]['num tombamento']} adicionado ao inventário.")
+        else:
+            # Permite ao usuário selecionar o patrimônio desejado
+            st.subheader("Mais de um patrimônio encontrado. Selecione o desejado:")
+            for index, row in resultados.iterrows():
+                if st.checkbox(f"{row['num tombamento']} - {row['denominacao']} - {row['marca_total']} - {row['modelo_total']} - {row['serie_total']} - {row['localidade']}", key=f"select_{index}"):
+                    st.session_state['inventario'].append(int(row['num tombamento']))
+                    st.success(f"Patrimônio {row['num tombamento']} adicionado ao inventário.")
+                    break  # Adiciona apenas um patrimônio por vez
+
+        return indices
+
+    except KeyError as e:
+        st.error(f"Erro ao acessar colunas: {e}")
+        return None
+    except Exception as e:
+        st.error(f"Ocorreu um erro inesperado: {e}")
+        return None
 
 def exibir_detalhes_patrimonio(df, resultados_busca):
     """
@@ -58,10 +77,17 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
             st.write(f"**Nº Serial:** {df.loc[resultados_busca,'serie_total'].values[0]}")
         with col2:
             st.write(f"**Denominação:** {df.loc[resultados_busca,'denominacao'].values[0]}")
-            st.write(f"**Localidade atual:** {df.loc[resultados_busca,'localidade'].values[0]}")
+            if df.loc[resultados_busca,'localidade'].values[0] == st.session_state['localidade_selecionada'][0]:
+                st.write(f"**Divergência de localidade:** :green[{"não"}]")
+            else:
+                st.write(f"**Divergência de localidade:** :red[{"SIM"}]")
+            if df.loc[resultados_busca,'localidade'].values[0] == st.session_state['localidade_selecionada'][0]:
+                st.write(f"**Localidade:** :green[{df.loc[resultados_busca,'localidade'].values[0]}]")
+            else:
+                st.write(f"**Localidade:** :red[{df.loc[resultados_busca,'localidade'].values[0]}]")
             if df.loc[resultados_busca,'status'].values[0] == 'ACAUTELADO':
                 st.write(f"**Acautelado para:** {df.loc[resultados_busca,'acautelado para'].values[0]}")
-            st.write(f"**Valor:** {df.loc[resultados_busca,'valor'].values[0]}")
+            
         with col3:
             st.write(f"**Marca:** {df.loc[resultados_busca,'marca_total'].values[0]}")
             if pd.notna(df.loc[resultados_busca,'modelo_total'].values[0]):
@@ -70,10 +96,8 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
                 st.write(f"**Levantamento:** :red[{df.loc[resultados_busca,'ultimo levantamento'].values[0]}]")
             else:
                 st.write(f"**Levantamento:** :green[{df.loc[resultados_busca,'ultimo levantamento'].values[0]}]")
-            if df.loc[resultados_busca,'localidade'].values[0] == st.session_state['localidade_selecionada'][0]:
-                st.write(f"**Divergência de localidade:** :green[{"não"}]")
-            else:
-                st.write(f"**Divergência de localidade:** :red[{"SIM"}]")
+            st.write(f"**Valor:** {df.loc[resultados_busca,'valor'].values[0]}")
+            
                 
         with col4:
             if df.loc[resultados_busca,'status'].values[0] == 'ALIENADO':
@@ -82,32 +106,9 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
                 st.write(f"**Status:** :green[{df.loc[resultados_busca,'status'].values[0]}]")
             st.write(f"**Descrição:** {df.loc[resultados_busca,'especificacoes'].values[0]}")
         
-    elif len(resultados_busca) > 1: #exibir dataframe com checkboxs para selecionar o patrimônio desejado
-        st.subheader("Mais de um patrimônio encontrado")
-        st.write("Selecione o patrimônio desejado:")
-        # CONTINUAR LÓGICA DE SELECIONAR POR CHECKBOX DAQUI
-        for index, row in df.loc[[resultados_busca]].iterrows():
-            col_check, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11 = st.columns(11)
-            with col_check: #adicionar um checkbox para cada linha encontrada
-                if st.checkbox(f"{row['num tombamento']}", key=f"check_{index}"):
-                    st.session_state['patrimonio_selecionado'] = row['num tombamento']
-                col2.write(f"**Descrição:** {row['denominacao']}")
-            
-                col3.write(f"**Nº Patrimônio:** {row['num tombamento']}")
-                col4.write(f"**Tombo Antigo:** {row['tombo_antigo']}")
-                col5.write(f"**Nº Serial:** {row['serie_total']}")
-                col6.write(f"**Localidade atual:** {row['localidade']}")
-                col7.write(f"**Marca:** {row['marca_total']}")
-                col8.write(f"**Modelo:** {row['modelo_total']}")
-                col9.write(f"**Último levantamento:** {row['ultimo levantamento']}")
-                col10.write(f"**Status:** {row['status']}")
-                col11.write(f"**Descrição:** {row['especificacoes']}")
-                st.divider()
-        st.dataframe(df_resultados_busca[['num tombamento', 'tombo_antigo', 'serie_total', 
-                                            'denominacao', 'localidade', 'acautelado para', 
-                                            'marca_total', 'modelo_total', 'ultimo levantamento', 
-                                            'status', 'especificacoes']], use_container_width=True, hide_index=True)
+    
     else:
+        # Se não houver resultados, exibir mensagem
         st.write("Patrimônio não encontrado.")
 
 def buscar_patrimonios_nao_inventariados(ano, localidade, caracteristicas=None):
@@ -120,7 +121,11 @@ def buscar_patrimonios_nao_inventariados(ano, localidade, caracteristicas=None):
     return df
 
 def adicionar_ao_inventario(item):
-    st.session_state['inventario'].append(item)
+    if item not in st.session_state['inventario']:
+        # Adiciona o item ao inventário
+        st.session_state['inventario'].append(item)
+    else:
+        st.warning("Item já adicionado ao inventário.")
     if 'patrimonios_nao_inventariados' in st.session_state:
         st.session_state['patrimonios_nao_inventariados'] = st.session_state['patrimonios_nao_inventariados'][
             ~st.session_state['patrimonios_nao_inventariados']['Descrição'].isin([item['Descrição']])
@@ -129,7 +134,7 @@ def adicionar_ao_inventario(item):
 
 # --- Tela de Input de Dados ---
 def tela_input_dados(df):
-    colunas_de_interesse = ['denominacao', 'marca_total', 'modelo_total', 'serie_total', 'status', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'valor','especificacoes','num tombamento']
+    colunas_de_interesse = ['denominacao', 'status', 'marca_total', 'modelo_total', 'serie_total', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'valor','especificacoes','num tombamento']
     st.title("Levantamento Patrimonial")
     if 'localidade_selecionada' not in st.session_state:
         st.session_state['localidade_selecionada'] = None
@@ -173,7 +178,7 @@ def tela_input_dados(df):
         caracteristicas = st.multiselect("Buscar por características",df_caracteristicas)
     
     resultados_busca = encontrar_indice_por_id(df, id)
-    st.write(resultados_busca)
+    #st.write(resultados_busca)
     
     # -- Resultados de busca -- 
     st.subheader("Resultados da Busca")
