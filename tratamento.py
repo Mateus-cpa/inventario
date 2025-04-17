@@ -198,7 +198,8 @@ def processa_planilha(df):
     df = df.reindex(columns=['num tombamento'] + [col for col in df.columns if col != 'num tombamento'])
     
     #configura índice
-    df.set_index('num tombamento', inplace=True, drop=False)    
+    df.set_index('num tombamento', inplace=True, drop=False)
+    df.index.name = 'index'    
     if 'num tombamento.1' in df.columns:
         #renomeia a coluna 'num tombamento.1' para 'num_tombamento'
         df.rename(columns={'num tombamento.1': 'num_tombamento'}, inplace=True)
