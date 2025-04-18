@@ -10,8 +10,8 @@ python = "^3.13.0"
 pandas = "^2.2.3"
 streamlit = "^1.44.0"
 openpyxl = "^3.1.5"
-python-calamine = "^0.10.0" # Verifique a versão mais recente no PyPI
-tqdm = "^4.66.2"   # Verifique a versão mais recente no PyPI
+python-calamine = "^0.3.2" # Verifique a versão mais recente no PyPI
+tqdm = "^4.67.1"   # Verifique a versão mais recente no PyPI
 
 [build-system]
 requires = ["poetry-core"]
