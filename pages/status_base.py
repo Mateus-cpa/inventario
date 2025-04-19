@@ -3,6 +3,7 @@ import pandas as pd
 from menu import ler_base_processada
 import os
 import altair as alt
+import json
 
 def pagina_principal(df):
     """Configura as propriedades da página no Streamlit."""
@@ -38,33 +39,28 @@ def pagina_principal(df):
     df_null = df_null[df_null > 0]
     df_null = df_null.sort_values(ascending=False)
     st.bar_chart(data=df_null)
-
-    st.subheader('Filtrar colunas')
-    coluna = st.selectbox('Selecione a coluna', df.columns)
-    col1,col2,col3 = st.columns(3)
-    col1.subheader(f'**Tipo de dado:** {df[coluna].dtype}')
-    try:
-        col1.metric('% de valores nulos', round(df_null[coluna],2))
-    except KeyError:
-        col1.metric('% de valores nulos', 0.00)
-    
-    if (df[coluna].dtype == 'int64' or df[coluna].dtype == 'float64'):
-        col3.metric('Mínimo', round(df[coluna].min(),2))
-        col2.metric('Mediana', round(df[coluna].median(),2))
-        col2.metric('Média', round(df[coluna].mean(),2))
-        col3.metric('Máximo', round(df[coluna].max(),2))
-
     st.divider()    
+
     #compara tamanho em MB de planilha data e data_bronze
     st.subheader('Comparativo de tamanhos em MB')
-    tamanho_inicial_mb = os.path.getsize('data/lista_bens.xlsx') / (1024 * 1024)
-    tamanho_final_mb = os.path.getsize('data_bronze/lista_bens-processado.csv') / (1024 * 1024)
-    col1, col2, col3 = st.columns(3)
-    col1.metric('Inicial', round(tamanho_inicial_mb,2))
-    col2.metric('Final', round(tamanho_final_mb,2))
-    col3.metric('Redução (%)', round((tamanho_inicial_mb - tamanho_final_mb)/tamanho_inicial_mb,2))
+    #ler json como dict
+    dict_resultados = json.load(open('data_bronze/resultados.json'))
+    
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric('Inicial xls em MB', round(dict_resultados['tamanho_inicial_mb'],2))
+    col2.metric('Final csv em MB', round(dict_resultados['tamanho_final_csv_mb'],2),
+                f'{round((dict_resultados['tamanho_final_csv_mb'] - dict_resultados['tamanho_inicial_mb'])/dict_resultados['tamanho_inicial_mb']*100,2)}%',
+                delta_color='inverse')
+    col3.metric('Final json em MB', round(dict_resultados['tamanho_final_json_mb'],2),
+                f'{round((dict_resultados['tamanho_final_json_mb'] - dict_resultados['tamanho_inicial_mb'])/dict_resultados['tamanho_inicial_mb']*100,2)}%',
+                delta_color='inverse')
+    col4.metric('Final xlsx em MB', round(dict_resultados['tamanho_final_xlsx_mb'],2),
+                f'{round((dict_resultados['tamanho_final_xlsx_mb'] - dict_resultados['tamanho_inicial_mb'])/dict_resultados['tamanho_inicial_mb']*100,2)}%',
+                delta_color='inverse')
+    
     
     st.divider()
+
     #gráfico quantidade por status
     st.subheader('Quantidade de bens por status')
     df_status = df['status'].value_counts()
@@ -83,17 +79,35 @@ def pagina_principal(df):
 
     #boxplot de valor_atual_tratado por sigla
     st.subheader('Boxplot de valor atual tratado por grupo de material')
-    df_boxplot = df[['grupo de material','valor_atual_tratado']].dropna()
-    df_boxplot['valor_atual_tratado'] = df_boxplot['valor_atual_tratado'].astype(float)
+    df_boxplot = df[['grupo de material','valor']].dropna()
+    df_boxplot['valor_atual_tratado'] = df_boxplot['valor'].astype(float)
     grafico_boxplot = alt.Chart(df_boxplot).mark_boxplot().encode(
         y=alt.Y('grupo de material', sort='-x'),
-        x='valor_atual_tratado',
+        x='valor',
         #tooltip=None
     ).properties(
         width=700,
         height=400
     )
     st.altair_chart(grafico_boxplot, use_container_width=True)
+
+    # Dados estatísticos por coluna
+    st.subheader('Filtrar colunas')
+    coluna = st.selectbox('Selecione a coluna', df.columns)
+    col1,col2,col3 = st.columns(3)
+    col1.subheader(f'**Tipo de dado:** {df[coluna].dtype}')
+    try:
+        col1.metric('% de valores nulos', round(df_null[coluna],2))
+    except KeyError:
+        col1.metric('% de valores nulos', 0.00)
+    
+    if (df[coluna].dtype == 'int64' or df[coluna].dtype == 'float64'):
+        col3.metric('Mínimo', round(df[coluna].min(),2))
+        col2.metric('Mediana', round(df[coluna].median(),2))
+        col2.metric('Média', round(df[coluna].mean(),2))
+        col3.metric('Máximo', round(df[coluna].max(),2))
+
+
 if __name__ == '__main__':
     CAMINHO_ARQ_PROCESSADO = 'data_bronze\lista_bens-processado.csv'
     df = ler_base_processada(CAMINHO_ARQ_PROCESSADO)
