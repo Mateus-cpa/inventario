@@ -231,7 +231,10 @@ def processa_planilha(df):
     caracteristicas.to_csv('data_bronze/caracteristicas.csv', index=False, header=False)
 
     #trnasforma valores numéricos em float -> '.' => ''' e ',' => '.'
-    df['valor_atual_tratado'] = df['valor'].apply(lambda x: repor_virgula_por_ponto(x))
+    colunas_valores = ['valor', 'valor entrada', 'valor acumulado', 'valor depreciacao acumulada']
+    for col in colunas_valores:
+        df[col] = df[col].apply(lambda x: repor_virgula_por_ponto(x))
+
     
     return df
 
@@ -266,24 +269,23 @@ def salva_estatisticas_levantamento(df, nome_base="historico_levantamento"):
     df_final['perc_levantado'] = df_final['qtde_levantado'] / df_final['qtde_total']
 
 
-    # salvar em json ou csv
+    # salvar histórico de levantamento em json ou csv
     if not df_levantamento_atual.empty:
         df_final.to_json(f'data_silver/{nome_arquivo}', orient='index', indent=4)
         print(f"Dados do levantamento de {df_final.columns[0]} salvos em {nome_arquivo}")
     else:
         print(f"Não há dados para salvar para {df_final.columns[0]}.")
-    
-
-
     pass
 
 def salva_dataframe():
     df_processado.to_csv('data_bronze/lista_bens-processado.csv')
-    #df_processado.to_excel('data_bronze/lista_bens-processado.xlsx', engine='openpyxl')
+    df_processado.to_json('data_bronze/lista_bens-processado.json', orient='records', lines=True)
+    df_processado.to_excel('data_bronze/lista_bens-processado.xlsx', engine='openpyxl')
     with open('data_bronze/resultados.json', 'r') as f:
         resultados = json.load(f)
     resultados['tamanho_final_csv_mb'] = pega_tamanho_em_mb(caminho='data_bronze/lista_bens-processado.csv')
-    #resultados['tamanho_final_xlsx_mb'] = pega_tamanho_em_mb(caminho='data_bronze/lista_bens-processado.xlsx')
+    resultados['tamanho_final_json_mb'] = pega_tamanho_em_mb(caminho='data_bronze/lista_bens-processado.json')
+    resultados['tamanho_final_xlsx_mb'] = pega_tamanho_em_mb(caminho='data_bronze/lista_bens-processado.xlsx')
     resultados['data_processamento'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with open('data_bronze/resultados.json', 'w') as f:
         json.dump(resultados, f, indent=4)
@@ -300,9 +302,9 @@ if __name__ == '__main__':
     salva_estatisticas_levantamento(df_processado)
     print('Salvando planilha processada...')
     salva_dataframe()
-
-    
-    
+    print(f"qtde colunas: {len(df_processado.columns)}")
+    print('Processamento concluído.')
+   
     
     
 
