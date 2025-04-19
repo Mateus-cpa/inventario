@@ -57,7 +57,12 @@ def pagina_principal(df):
     col4.metric('Final xlsx em MB', round(dict_resultados['tamanho_final_xlsx_mb'],2),
                 f'{round((dict_resultados['tamanho_final_xlsx_mb'] - dict_resultados['tamanho_inicial_mb'])/dict_resultados['tamanho_inicial_mb']*100,2)}%',
                 delta_color='inverse')
-    
+
+    col2.metric('Quantidade de colunas', dict_resultados['qtde_colunas_inicial'])    
+    col3.metric('Quantidade de colunas', dict_resultados['qtde_colunas_final'],
+                f'{round((dict_resultados['qtde_colunas_final'] - dict_resultados['qtde_colunas_inicial'])/dict_resultados['qtde_colunas_inicial']*100,2)}%',
+                delta_color='inverse')
+
     
     st.divider()
 
