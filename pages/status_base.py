@@ -42,7 +42,7 @@ def pagina_principal(df):
     st.divider()    
 
     #compara tamanho em MB de planilha data e data_bronze
-    st.subheader('Comparativo de tamanhos em MB')
+    st.subheader('Comparativo de arquivos iniciais e finais')
     #ler json como dict
     dict_resultados = json.load(open('data_bronze/resultados.json'))
     
@@ -58,8 +58,8 @@ def pagina_principal(df):
                 f'{round((dict_resultados['tamanho_final_xlsx_mb'] - dict_resultados['tamanho_inicial_mb'])/dict_resultados['tamanho_inicial_mb']*100,2)}%',
                 delta_color='inverse')
 
-    col2.metric('Quantidade de colunas', dict_resultados['qtde_colunas_inicial'])    
-    col3.metric('Quantidade de colunas', dict_resultados['qtde_colunas_final'],
+    col2.metric('Quantidade de colunas iniciais', dict_resultados['qtde_colunas_inicial'])    
+    col3.metric('Quantidade de colunas finais', dict_resultados['qtde_colunas_final'],
                 f'{round((dict_resultados['qtde_colunas_final'] - dict_resultados['qtde_colunas_inicial'])/dict_resultados['qtde_colunas_inicial']*100,2)}%',
                 delta_color='inverse')
 
