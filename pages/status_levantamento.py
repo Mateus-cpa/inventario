@@ -41,6 +41,7 @@ def pagina_principal(df):
     col2.metric('Qtd. de Bens Inventariados', qtde_bens_inventariados)
     col3.metric('Percentual de Bens Inventariados', f'{round(df_ativos[df_ativos['ano do levantamento'] == dt.date.today().year].shape[0]/df_ativos.shape[0]*100,2)} %')
     
+    
     #dataframe de quantidade levantado por ano de levantamento
     st.subheader('Quantidade levantada por ano')
     df_lev = df_ativos.groupby('ano do levantamento').size().reset_index(name='quantidade')
@@ -77,9 +78,9 @@ def pagina_principal(df):
     if botao_salvar_imagem:
         chart.save(f'graficos_levantamento/grafico_levantamento_{dt.date.today()}.png')
     st.divider()
-   
-    # grafico levantamento relativo de cada unidade
-    st.header('Levantamento relativo de cada unidade')
+    
+    # -- Histórico de levantamento --
+    st.header('Evolução do Levantamento')
     #pegar os dados de data_silver e concatenar em um dataframe
     df_levantamento_historico = pd.DataFrame()
     for arq in os.listdir('data_silver'):
@@ -96,19 +97,86 @@ def pagina_principal(df):
             
             #transformar data_levantamento em índice
             df_levantamento_parcial.set_index('data_levantamento', drop=True, inplace=True)
-            #df_levantamento_parcial = df_levantamento_parcial['perc_levantado']
+            df_levantamento_parcial['perc_levantado'] = df_levantamento_parcial['perc_levantado']*100
             df_levantamento_historico = pd.concat([df_levantamento_historico, df_levantamento_parcial])
+
     
+    # -- Seção evolução do levantamento --
+    st.header('Levantamento histórico')
+    #criar coluna no dataframe onde inicia com levantamento estimado e vai até o último levantamento somando 320 por dia
+    levantamento_diario_estimado = 320
+    df_levantamento_historico_geral = df_levantamento_historico[['qtde_levantado','perc_levantado']].groupby('data_levantamento').sum().reset_index()
+    for i in range(len(df_levantamento_historico_geral)):
+        if i == 0:
+            df_levantamento_historico_geral['levantamento_estimado'] = levantamento_diario_estimado
+        else:
+            df_levantamento_historico_geral['levantamento_estimado'][i] = df_levantamento_historico_geral['levantamento_estimado'][i-1] + levantamento_diario_estimado
+    df_levantamento_historico_geral.drop(columns=['perc_levantado'], inplace=True)
+
+    #guardar o valor máximo entre qtde levantada e levantamento estimado
+    valor_maximo = df_levantamento_historico_geral[['qtde_levantado','levantamento_estimado']].max().max()
+
+    # criar gráfico de área onde o eixo x é a data de levantamento e o eixo y é a quantidade levantada e a quantidade estimada
+    linha_levantamento = alt.Chart(df_levantamento_historico_geral).mark_area(opacity=0.5).encode(
+        x=alt.X('data_levantamento:T', title='Data do Levantamento'),
+        y=alt.Y('qtde_levantado:Q', title='Quantidade Levantada', scale=alt.Scale(domain=[0, valor_maximo])),
+        tooltip=['data_levantamento', 'qtde_levantado']
+    ).properties(
+        width=800,
+        height=400
+    )
+    # Adicionar a linha de levantamento estimado
+    linha_estimativa = alt.Chart(df_levantamento_historico_geral).mark_line(color='red').encode(
+        x=alt.X('data_levantamento:T', title='Data do Levantamento'),
+        y=alt.Y('levantamento_estimado:Q', title='Levantamento Estimado', scale=alt.Scale(domain=[0, valor_maximo])),
+        tooltip=['data_levantamento', 'levantamento_estimado']
+    ).properties(
+        width=800,
+        height=400
+    )
+    # Adicionar rótulos com os valores da quantidade levantada
+    text = alt.Chart(df_levantamento_historico_geral).mark_text(
+        align='center',
+        baseline='bottom', # Alterado para 'bottom' para posicionar acima da área
+        dy=-5  # Ajusta a posição vertical do texto
+    ).encode(
+        x=alt.X('data_levantamento:T'),
+        y=alt.Y('qtde_levantado:Q'),
+        text=alt.Text('qtde_levantado:Q'),  # Exibe os valores
+        color=alt.value('black') # Define a cor do texto
+    )
+    # Mergir os três gráficos (área, linha e texto) e aplicar a configuração de grade
+    grafico_levantamento = (linha_levantamento + linha_estimativa + text).configure_axis(
+        grid=True
+    )
+    # Exibir o gráfico no Streamlit
+    st.altair_chart(grafico_levantamento, use_container_width=True)
+        
+
+
+    # -- Seção levantamento de cada unidade -- 
+    st.header('Levantamento relativo de cada unidade')
     #criar gráfico de linha do tempo onde cada unidade é uma linha e o valor é perc_levantado
     st.subheader('Gráfico de Linha do Tempo por Unidade')
 
-        # Resetar o índice para garantir que as colunas necessárias estejam disponíveis
+    # Resetar o índice para garantir que as colunas necessárias estejam disponíveis
     df_levantamento_historico_reset = df_levantamento_historico.reset_index()
 
+    col1, col2 = st.columns([0.2, 0.8])
+    # retirar dados de levantamnto zerados
+
+    retirar_zerados = col1.button('Retirar levantamentos zerados')
+    if retirar_zerados:
+        df_levantamento_historico_reset = df_levantamento_historico_reset[df_levantamento_historico_reset['perc_levantado'] > 0]
+        st.success('Levantamentos zerados retirados')
+    #filtrar por unidade
+    filtro_unidade = col2.multiselect('Filtrar por Unidade: ', df_levantamento_historico_reset['unidade'].unique())
+    if filtro_unidade:
+        df_levantamento_historico_reset = df_levantamento_historico_reset[df_levantamento_historico_reset['unidade'].isin(filtro_unidade)]
     # Criar o gráfico com Altair
     line_chart = alt.Chart(df_levantamento_historico_reset).mark_line().encode(
         x=alt.X('data_levantamento:T', title='Data do Levantamento'),
-        y=alt.Y('perc_levantado:Q', title='Percentual Levantado', scale=alt.Scale(domain=[0, 1])),
+        y=alt.Y('perc_levantado:Q', title='Percentual Levantado', scale=alt.Scale(domain=[0, 100])),
         color=alt.Color('unidade:N', title='Unidade'),
         tooltip=['data_levantamento', 'unidade', 'perc_levantado']
     ).properties(
