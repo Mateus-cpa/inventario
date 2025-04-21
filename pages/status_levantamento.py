@@ -5,6 +5,7 @@ import os
 import datetime as dt
 import altair as alt
 
+
 def pagina_principal(df):
     """Configura as propriedades da página no Streamlit."""
     st.set_page_config(
@@ -70,11 +71,11 @@ def pagina_principal(df):
         fill='white')
     st.altair_chart(chart_with_text, use_container_width=True)
     """Legenda: Último levantamento em 2010 significa que nunca foi inventariado"""
+        
     #criar botão de salvar gráfico como imagem em graficos_levantamento com a data atual
     botao_salvar_imagem = st.button('Salvar gráfico como imagem')
     if botao_salvar_imagem:
-        pass
-        #chart.save(f'graficos_levantamento/grafico_levantamento_{dt.date.today()}.png')
+        chart.save(f'graficos_levantamento/grafico_levantamento_{dt.date.today()}.png')
     st.divider()
    
     # grafico levantamento relativo de cada unidade
