@@ -113,10 +113,39 @@ def ler_txt(arquivo):
     with open(arquivo, 'r', encoding='utf-8-sig') as f:
         linhas = f.readlines()
     patrimonios = [linha.strip() for linha in linhas] # Remove espaços em branco e quebras de linha
-    print(patrimonios)
+    #print(patrimonios)
     return patrimonios
 
+def concatenar_etiquetas_individuais(nome_saida: str):
+    """
+    Concatena os arquivos PDF individuais em um único arquivo PDF.
+    """
+    from PyPDF2 import PdfMerger
 
+    # Cria um objeto PdfMerger
+    merger = PdfMerger()
+
+    # Adiciona os arquivos PDF individuais da pasta etiquetas_geradas/ 
+    # de data dos mais antigo par ao mais recente ao objeto PdfMerger
+    lista_arquivos = sorted(os.listdir("etiquetas_geradas/"), key=lambda x: os.path.getmtime(os.path.join("etiquetas_geradas/", x)))
+    print(f'quantidade de etiquetas geradas: {len(lista_arquivos)}')
+    for arquivo in lista_arquivos:
+        if arquivo.endswith(".pdf"):
+            caminho_arquivo = os.path.join("etiquetas_geradas/", arquivo)
+            merger.append(caminho_arquivo)
+    
+
+    # Salva o arquivo PDF concatenado
+    merger.write(f"txt_etiquetas/{nome_saida}.pdf")
+    merger.close()
+
+def remover_arquivos():
+    """
+    Remove os arquivos PDF individuais da pasta etiquetas_geradas/.
+    """
+    for arquivo in os.listdir("etiquetas_geradas/"):
+        if arquivo.endswith(".pdf"):
+            os.remove(os.path.join("etiquetas_geradas/", arquivo))
 
 if __name__ == '__main__':
     arquivo_origem_txt = 'SETEC_p1.txt' # Nome do arquivo txt com os patrimônios'
@@ -124,7 +153,11 @@ if __name__ == '__main__':
     #patrimonios = [2025009535, 2025009536, 2025009537]
     for patrimonio in patrimonios:
         patrimonio = str(patrimonio)
-        print(f"Gerando código de barras para o patrimônio {patrimonio}")
+        #print(f"Gerando código de barras para o patrimônio {patrimonio}")
         barcode = BarcodePF(patrimonio)
-        print(f"Código de barras gerado com sucesso!")
-        #concatenar_etiquetas_individuais()
+        #print(f"Código de barras gerado com sucesso!")
+    print(f"Gerando PDF concatenado para o arquivo {arquivo_origem_txt}")
+    concatenar_etiquetas_individuais(nome_saida = arquivo_origem_txt)
+    print('Apagando arquivos pdf individuais de etiquetas_geradas/')
+    remover_arquivos()
+    print('Arquivos individuais apagados com sucesso!')
