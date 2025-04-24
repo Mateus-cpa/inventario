@@ -148,7 +148,7 @@ def remover_arquivos():
             os.remove(os.path.join("etiquetas_geradas/", arquivo))
 
 if __name__ == '__main__':
-    arquivo_origem_txt = 'SETEC_p1.txt' # Nome do arquivo txt com os patrimônios'
+    arquivo_origem_txt = 'Setec p2.txt' # Nome do arquivo txt com os patrimônios'
     patrimonios = ler_txt(f'txt_etiquetas/{arquivo_origem_txt}') # Lê o arquivo txt com os patrimônios
     #patrimonios = [2025009535, 2025009536, 2025009537]
     for patrimonio in patrimonios:
