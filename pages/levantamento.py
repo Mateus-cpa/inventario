@@ -8,6 +8,22 @@ def obter_localidades():
     localidades = pd.read_csv("data_bronze/localidades.csv").values.tolist()
     return localidades
 
+def escolhe_dentre_resultados(index, df):
+    """
+    Exibe uma lista de resultados encontrados e permite ao usuário escolher quais deles.
+
+    Args:
+        index: Lista de índices dos resultados encontrados.
+    """
+    st.subheader("Mais de um patrimônio encontrado. Selecione o desejado:")
+    for index, row in df.iterrows():
+        if st.checkbox(f"{row['num tombamento']} - {row['denominacao']} - {row['marca_total']} - {row['modelo_total']} - {row['serie_total']} - {row['localidade']}", key=f"select_{index}"):
+            st.session_state['inventario'].append(int(row['num tombamento']))
+            st.success(f"Patrimônio {row['num tombamento']} adicionado ao inventário.")
+            break  # Adiciona apenas um patrimônio por vez
+
+    return index
+
 def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> list[int] | None:
     """
     Busca um ID em diferentes colunas de um DataFrame e retorna o(s) índice(s) da linha correspondente.
@@ -36,21 +52,12 @@ def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> list[int] | None
 
         # Obtém os índices dos resultados encontrados
         indices = resultados.index.tolist()
-
         if len(indices) == 1:
-            # Adiciona diretamente ao inventário se houver apenas um resultado
-            st.session_state['inventario'].append(resultados.iloc[0]['num tombamento'])
-            st.success(f"Patrimônio {resultados.iloc[0]['num tombamento']} adicionado ao inventário.")
+                    # Adiciona diretamente ao inventário se houver apenas um resultado
+                    st.session_state['inventario'].append(indices[0])
+                    st.success(f"Patrimônio {resultados.iloc[0]['num tombamento']} adicionado ao inventário.")
         else:
-            # Permite ao usuário selecionar o patrimônio desejado
-            st.subheader("Mais de um patrimônio encontrado. Selecione o desejado:")
-            for index, row in resultados.iterrows():
-                if st.checkbox(f"{row['num tombamento']} - {row['denominacao']} - {row['marca_total']} - {row['modelo_total']} - {row['serie_total']} - {row['localidade']}", key=f"select_{index}"):
-                    st.session_state['inventario'].append(int(row['num tombamento']))
-                    st.success(f"Patrimônio {row['num tombamento']} adicionado ao inventário.")
-                    break  # Adiciona apenas um patrimônio por vez
-
-        return indices
+            escolhe_dentre_resultados(index = indices, df = resultados)
 
     except KeyError as e:
         st.error(f"Erro ao acessar colunas: {e}")
@@ -156,31 +163,38 @@ def tela_input_dados(df):
             st.session_state['localidade_selecionada'] = localidade_escolhida
 
     with col2:
-        #data_inventario = st.date_input("Data do Inventário", dt.date.today()) #talvez não precise por causa do st.session_state('horario_inventário')
         acompanhante = st.text_input("Acompanhante")
 
     df_resultados_busca = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
     
-    # busca de material
+    # -- Inserção de dados --
     st.subheader("Inserir Dados do Patrimônio")
-    
     col1, col2, col3 = st.columns([0.4,0.3,0.3])
+    #id
     id = col1.text_input("Id. do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)")
-    #id = '2010060766' #TIC
-    #id = '2010041474' #outro
-    botao_detentor = col2.button("Buscar Detentor")
-    if botao_detentor:
-        detentor = st.multiselect('Selecione o detentor', df['acautelado para'].unique(), key="detentor")
-        df_resultados_busca = df_resultados_busca[df['acautelado para'] == detentor]
+    #detentor
+    detentor = col2.selectbox("Adicionar bens de detentor", df['acautelado para'].unique(), key="detentor")
+    cautela = df[df['acautelado para'] == detentor].index.tolist()
+        #for i in range(len(id_detentor)):
+        #    st.session_state['inventario'].append(id_detentor[i])
+    # botão para buscar características
     botao_caracteristicas = col3.button("Buscar Características")
     if botao_caracteristicas: # Buscar materiais sem patrimônio não inventariado por suas características    
         df_caracteristicas = pd.read_csv('data_bronze/caracteristicas.csv')
         caracteristicas = st.multiselect("Buscar por características",df_caracteristicas)
+
+    # -- Resultados de busca --
+    resultados_busca = None
+    if len(cautela) > 0: #retorna resultados por cautela
+        resultados_busca = escolhe_dentre_resultados(index = cautela, df = df.loc[cautela])
+    if id != '':
+        resultados_busca = encontrar_indice_por_id(df=df, id_busca=id)
+    else:
+        st.warning('Nenhum resultado encontrado.')
     
-    resultados_busca = encontrar_indice_por_id(df, id)
-    #st.write(resultados_busca)
-    
+
     # -- Resultados de busca -- 
+    st.write(resultados_busca)
     st.subheader("Resultados da Busca")
     if resultados_busca != None:
         exibir_detalhes_patrimonio(df, resultados_busca)
@@ -225,12 +239,20 @@ def tela_input_dados(df):
     inventario_convertido = [int(valor) for valor in st.session_state['inventario']]
     df.set_index('num tombamento', inplace=True, drop=False)
     df_inventario = df[df.index.isin(inventario_convertido)]
-    
-
     if df_inventario.empty:
         st.write('Nenhum bem foi adicionado ao inventário ainda.')
+    
     else:
         st.data_editor(df_inventario[colunas_de_interesse], use_container_width=True)
+    st.divider()
+    
+    # -- Verificação de duplicidade --
+    len(st.session_state['inventario']) != len(set(st.session_state['inventario']))
+    st.warning("Existem itens duplicados no inventário. Verifique os IDs.")
+    # Exibir os itens duplicados
+    duplicados = [item for item in set(st.session_state['inventario']) if st.session_state['inventario'].count(item) > 1]
+    st.write("Itens duplicados:", duplicados)
+    
     st.divider()
     
     # -- Seção bens a inventariar --
