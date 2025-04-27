@@ -224,7 +224,7 @@ def processa_planilha(df):
     localidades.to_csv('data_bronze/localidades.csv', index=False, header=False)
 
     #concatenar textos das colunas de características [denominacao, especificações, marca_total, modelo_total, serie_total] em uma coluna
-    df['caracteristicas'] = df[['denominacao', 'especificacoes', 'marca_total', 'modelo_total', 'serie_total']].agg(' '.join, axis=1)
+    df['caracteristicas'] = df[['denominacao', 'especificacao', 'marca_total', 'modelo_total']].agg(' '.join, axis=1)
     # remover dados repetidos e salvar csv como lista
     caracteristicas = df['caracteristicas'].unique().tolist()
     caracteristicas = pd.Series(caracteristicas, name='caracteristicas')
