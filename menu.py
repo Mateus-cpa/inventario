@@ -25,7 +25,7 @@ def menu_principal():
     else:
         tela_input_dados()"""
     # Para fins de teste, vamos chamar a tela de input de dados diretamente
-    CAMINHO_PROCESSADO = 'data_bronze\lista_bens-processado.csv'
+    CAMINHO_PROCESSADO = 'data_bronze/lista_bens-processado.csv'
     df = ler_base_processada(CAMINHO_PROCESSADO)
     st.write(df.columns)
     st.write(df.index)
