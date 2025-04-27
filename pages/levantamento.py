@@ -169,7 +169,7 @@ def tela_input_dados(df):
     
     # -- Inserção de dados --
     st.subheader("Inserir Dados do Patrimônio")
-    col1, col2, col3 = st.columns([0.4,0.3,0.3])
+    col1, col2 = st.columns(2)
     #id
     id = col1.text_input("Id. do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)")
     #detentor
@@ -178,16 +178,16 @@ def tela_input_dados(df):
         #for i in range(len(id_detentor)):
         #    st.session_state['inventario'].append(id_detentor[i])
     # botão para buscar características
-    botao_caracteristicas = col3.button("Buscar Características")
-    if botao_caracteristicas: # Buscar materiais sem patrimônio não inventariado por suas características    
-        df_caracteristicas = pd.read_csv('data_bronze/caracteristicas.csv')
-        caracteristicas = st.multiselect("Buscar por características",df_caracteristicas)
-
+    df_caracteristicas = pd.read_csv('data_bronze/caracteristicas.csv')
+    caracteristicas = st.multiselect("Buscar por características",df_caracteristicas)
+    
     # -- Resultados de busca --
     resultados_busca = None
     if len(cautela) > 0: #retorna resultados por cautela
         resultados_busca = escolhe_dentre_resultados(index = cautela, df = df.loc[cautela])
-    if id != '':
+    elif len(caracteristicas) > 0: #retorna resultados por características
+        resultados_busca = df[df['caracteristicas'].str.contains(caracteristicas[0], case=False)]
+    elif id != '':
         resultados_busca = encontrar_indice_por_id(df=df, id_busca=id)
     else:
         st.warning('Nenhum resultado encontrado.')
