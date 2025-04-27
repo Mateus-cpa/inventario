@@ -4,6 +4,8 @@
 # Dados crus do sistema
 data
 data_bronze
+txt_etiquetas
+etiquetas_geradas
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
