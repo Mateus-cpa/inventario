@@ -8,7 +8,7 @@ def obter_localidades():
     localidades = pd.read_csv("data_bronze/localidades.csv").values.tolist()
     return localidades
 
-def escolhe_dentre_resultados(index, df):
+def escolhe_dentre_resultados(df, index):
     """
     Exibe uma lista de resultados encontrados e permite ao usuário escolher quais deles.
 
@@ -75,7 +75,9 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
         id_busca: O ID do patrimônio a ser buscado.
     """
     df.set_index('num tombamento', inplace=True, drop=False)
-    if len(resultados_busca) == 1:
+    if isinstance(resultados_busca, int):
+        resultados_busca = [resultados_busca]
+    if len(resultados_busca) > 0:
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.write(f"**Nº Patrimônio:** {df.loc[resultados_busca,'num tombamento'].values[0]}")
@@ -161,10 +163,8 @@ def tela_input_dados(df):
                 st.session_state['localidade_selecionada'] = None
         else:
             st.session_state['localidade_selecionada'] = localidade_escolhida
-
     with col2:
         acompanhante = st.text_input("Acompanhante")
-
     df_resultados_busca = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
     
     # -- Inserção de dados --
@@ -174,19 +174,22 @@ def tela_input_dados(df):
     id = col1.text_input("Id. do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)")
     #detentor
     detentor = col2.selectbox("Adicionar bens de detentor", df['acautelado para'].unique(), key="detentor")
-    cautela = df[df['acautelado para'] == detentor].index.tolist()
-        #for i in range(len(id_detentor)):
-        #    st.session_state['inventario'].append(id_detentor[i])
+    index_cautela = df[df['acautelado para'] == detentor].index.tolist()
     # botão para buscar características
-    df_caracteristicas = pd.read_csv('data_bronze/caracteristicas.csv')
-    caracteristicas = st.multiselect("Buscar por características",df_caracteristicas)
+    caracteristicas = st.multiselect("Buscar por características",df['caracteristicas'])
+    st.write(caracteristicas)
+    #retorna índices onde características = df['caracteristicas'].str.contains(caracteristicas[0], case=False)
+    if caracteristicas:
+        index_caracteristicas = df[df['caracteristicas'].str.contains(caracteristicas[0], case=False)].index.tolist()
+        st.write(index_caracteristicas)
     
     # -- Resultados de busca --
     resultados_busca = None
-    if len(cautela) > 0: #retorna resultados por cautela
-        resultados_busca = escolhe_dentre_resultados(index = cautela, df = df.loc[cautela])
-    elif len(caracteristicas) > 0: #retorna resultados por características
-        resultados_busca = df[df['caracteristicas'].str.contains(caracteristicas[0], case=False)]
+    if len(index_cautela) > 0: #retorna resultados por cautela
+        resultados_busca = escolhe_dentre_resultados(index = index_cautela, df = df.loc[index_cautela])
+        detentor = 'nan'
+    elif len(index_caracteristicas) > 0: #retorna resultados por características
+        resultados_busca = escolhe_dentre_resultados(index = index_caracteristicas, df = df.loc[index_caracteristicas])
     elif id != '':
         resultados_busca = encontrar_indice_por_id(df=df, id_busca=id)
     else:
@@ -201,37 +204,6 @@ def tela_input_dados(df):
     
     st.divider()
     
-    if botao_caracteristicas:
-        if st.session_state['localidade_selecionada']:
-            ano_atual = dt.date.today().year
-            patrimonios_nao_inventariados = buscar_patrimonios_nao_inventariados(
-                ano_atual, st.session_state['localidade_selecionada'], caracteristicas
-            )
-            if not patrimonios_nao_inventariados.empty:
-                st.subheader("Patrimônios Não Inventariados")
-                for index, row in patrimonios_nao_inventariados.iterrows():
-                    col_check, col_info = st.columns([0.1, 0.9])
-                    with col_check:
-                        if st.checkbox(f"Adicionar", key=f"add_{index}"):
-                            item_para_adicionar = {
-                                'Descrição': row['Descrição'],
-                                'Local': row['Local'],
-                                'Unidade': row['Unidade'],
-                                'Ultimo_Inventario': row['Ultimo_Inventario'],
-                                'Numero_Serie': row['Numero_Serie'],
-                                'Tipo': row['Tipo']
-                            }
-                            adicionar_ao_inventario(item_para_adicionar)
-                    with col_info:
-                        st.write(f"**Descrição:** {row['Descrição']}")
-                        st.write(f"**Local:** {row['Local']}")
-                        st.write(f"**Unidade:** {row['Unidade']}")
-                        st.write(f"**Último Inventário:** {row['Ultimo_Inventario']}")
-            else:
-                st.info("Nenhum patrimônio não inventariado encontrado com as características fornecidas.")
-        else:
-            st.warning("Selecione ou insira uma localidade primeiro.")
-
     
     
     # -- Seção Bens inventariados --
