@@ -1,8 +1,8 @@
 {
     "COR\/SR\/PF\/PR":{
-        "qtde_total":213,
-        "qtde_levantado":0.0,
-        "perc_levantado":0.0
+        "qtde_total":215,
+        "qtde_levantado":102.0,
+        "perc_levantado":0.4744186047
     },
     "DELEAQ\/DREX\/SR\/PF\/PR":{
         "qtde_total":327,
@@ -15,12 +15,12 @@
         "perc_levantado":0.0
     },
     "DELECOR\/DRPJ\/SR\/PF\/PR":{
-        "qtde_total":682,
-        "qtde_levantado":0.0,
-        "perc_levantado":0.0
+        "qtde_total":679,
+        "qtde_levantado":1.0,
+        "perc_levantado":0.0014727541
     },
     "DELEFAZ\/DRPJ\/SR\/PF\/PR":{
-        "qtde_total":549,
+        "qtde_total":544,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
@@ -30,7 +30,7 @@
         "perc_levantado":0.0
     },
     "DELEPAT\/DRPJ\/SR\/PF\/PR":{
-        "qtde_total":281,
+        "qtde_total":282,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
@@ -55,22 +55,22 @@
         "perc_levantado":0.0
     },
     "DPF\/GPB\/PR":{
-        "qtde_total":1278,
+        "qtde_total":1276,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "DPF\/LDA\/PR":{
-        "qtde_total":3658,
+        "qtde_total":3603,
         "qtde_levantado":2.0,
-        "perc_levantado":0.0005467469
+        "perc_levantado":0.000555093
     },
     "DPF\/MGA\/PR":{
-        "qtde_total":4158,
-        "qtde_levantado":5.0,
-        "perc_levantado":0.0012025012
+        "qtde_total":4160,
+        "qtde_levantado":1.0,
+        "perc_levantado":0.0002403846
     },
     "DPF\/PGZ\/PR":{
-        "qtde_total":1608,
+        "qtde_total":1536,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
@@ -80,22 +80,22 @@
         "perc_levantado":0.0
     },
     "DRE\/DRPJ\/SR\/PF\/PR":{
-        "qtde_total":1147,
-        "qtde_levantado":0.0,
-        "perc_levantado":0.0
+        "qtde_total":1127,
+        "qtde_levantado":1.0,
+        "perc_levantado":0.0008873114
     },
     "DREX\/SR\/PF\/PR":{
-        "qtde_total":4364,
+        "qtde_total":4356,
         "qtde_levantado":1.0,
-        "perc_levantado":0.0002291476
+        "perc_levantado":0.0002295684
     },
     "DRPJ\/SR\/PF\/PR":{
-        "qtde_total":230,
+        "qtde_total":231,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "FICCO\/DRPJ\/SR\/PF\/PR":{
-        "qtde_total":89,
+        "qtde_total":91,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
@@ -110,12 +110,12 @@
         "perc_levantado":0.0
     },
     "NAD\/DPF\/GPB\/PR":{
-        "qtde_total":351,
+        "qtde_total":252,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "NAD\/DPF\/LDA\/PR":{
-        "qtde_total":373,
+        "qtde_total":338,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
@@ -125,7 +125,7 @@
         "perc_levantado":0.0
     },
     "NAD\/DPF\/PNG\/PR":{
-        "qtde_total":403,
+        "qtde_total":399,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
@@ -136,11 +136,11 @@
     },
     "NCI\/SR\/PF\/PR":{
         "qtde_total":45,
-        "qtde_levantado":0.0,
-        "perc_levantado":0.0
+        "qtde_levantado":1.0,
+        "perc_levantado":0.0222222222
     },
     "NEOF\/SELOG\/SR\/PF\/PR":{
-        "qtde_total":65,
+        "qtde_total":63,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
@@ -150,17 +150,17 @@
         "perc_levantado":0.0
     },
     "NID\/DREX\/SR\/PF\/PR":{
-        "qtde_total":268,
+        "qtde_total":269,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "NO\/DPF\/GPB\/PR":{
-        "qtde_total":252,
+        "qtde_total":251,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "NO\/DPF\/LDA\/PR":{
-        "qtde_total":427,
+        "qtde_total":424,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
@@ -170,29 +170,29 @@
         "perc_levantado":0.0
     },
     "NO\/DREX\/SR\/PF\/PR":{
-        "qtde_total":467,
+        "qtde_total":466,
         "qtde_levantado":1.0,
-        "perc_levantado":0.0021413276
+        "perc_levantado":0.0021459227
     },
     "NPA\/DPF\/GPB\/PR":{
-        "qtde_total":150,
+        "qtde_total":148,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "NPA\/DPF\/LDA\/PR":{
-        "qtde_total":238,
+        "qtde_total":239,
         "qtde_levantado":2.0,
-        "perc_levantado":0.0084033613
+        "perc_levantado":0.0083682008
     },
     "NPA\/DPF\/PNG\/PR":{
-        "qtde_total":151,
+        "qtde_total":150,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "NTI\/SR\/PF\/PR":{
-        "qtde_total":1516,
+        "qtde_total":1519,
         "qtde_levantado":1.0,
-        "perc_levantado":0.0006596306
+        "perc_levantado":0.0006583278
     },
     "NUAIN\/COR\/SR\/PF\/PR":{
         "qtde_total":14,
@@ -200,19 +200,19 @@
         "perc_levantado":0.0
     },
     "NUCOR\/COR\/SR\/PF\/PR":{
-        "qtde_total":89,
-        "qtde_levantado":0.0,
-        "perc_levantado":0.0
+        "qtde_total":91,
+        "qtde_levantado":54.0,
+        "perc_levantado":0.5934065934
     },
     "NUDIS\/COR\/SR\/PF\/PR":{
         "qtde_total":47,
-        "qtde_levantado":0.0,
-        "perc_levantado":0.0
+        "qtde_levantado":14.0,
+        "perc_levantado":0.2978723404
     },
     "NUMAT\/SELOG\/SR\/PF\/PR":{
-        "qtde_total":277,
-        "qtde_levantado":0.0,
-        "perc_levantado":0.0
+        "qtde_total":301,
+        "qtde_levantado":103.0,
+        "perc_levantado":0.342192691
     },
     "NUPAG\/SGP\/SR\/PF\/PR":{
         "qtde_total":63,
@@ -220,24 +220,24 @@
         "perc_levantado":0.0
     },
     "NUPROC\/DPF\/GPB\/PR":{
-        "qtde_total":161,
+        "qtde_total":159,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "NUPROC\/DPF\/LDA\/PR":{
-        "qtde_total":266,
+        "qtde_total":264,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "NUPROC\/DPF\/PNG\/PR":{
-        "qtde_total":125,
+        "qtde_total":123,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "NUPROC\/DRPJ\/SR\/PF\/PR":{
-        "qtde_total":245,
-        "qtde_levantado":0.0,
-        "perc_levantado":0.0
+        "qtde_total":247,
+        "qtde_levantado":51.0,
+        "perc_levantado":0.2064777328
     },
     "NUTEC\/DPF\/LDA\/PR":{
         "qtde_total":292,
@@ -245,14 +245,14 @@
         "perc_levantado":0.0
     },
     "SELOG\/SR\/PF\/PR":{
-        "qtde_total":1054,
-        "qtde_levantado":0.0,
-        "perc_levantado":0.0
+        "qtde_total":1051,
+        "qtde_levantado":59.0,
+        "perc_levantado":0.0561370124
     },
     "SETEC\/SR\/PF\/PR":{
-        "qtde_total":1589,
-        "qtde_levantado":0.0,
-        "perc_levantado":0.0
+        "qtde_total":1628,
+        "qtde_levantado":1235.0,
+        "perc_levantado":0.7585995086
     },
     "SGP\/SR\/PF\/PR":{
         "qtde_total":172,
@@ -260,12 +260,12 @@
         "perc_levantado":0.0
     },
     "SIP\/SR\/PF\/PR":{
-        "qtde_total":589,
+        "qtde_total":586,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     },
     "SR\/PF\/PR":{
-        "qtde_total":8253,
+        "qtde_total":8517,
         "qtde_levantado":0.0,
         "perc_levantado":0.0
     }
