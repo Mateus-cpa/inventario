@@ -17,7 +17,8 @@ def escolhe_dentre_resultados(df, index):
     """
     st.subheader("Mais de um patrimônio encontrado. Selecione o desejado:")
     for index, row in df.iterrows():
-        if st.checkbox(f"{row['num tombamento']} - {row['denominacao']} - {row['marca_total']} - {row['modelo_total']} - {row['serie_total']} - {row['localidade']}", key=f"select_{index}"):
+        if st.checkbox(f"{row['num tombamento']} - {row['denominacao']} - {row['marca_total']} - {row['modelo_total']} - {row['serie_total']} - {row['localidade']} - {row['acautelado para']}'",
+                       key=f"select_{index}"):
             st.session_state['inventario'].append(int(row['num tombamento']))
             st.success(f"Patrimônio {row['num tombamento']} adicionado ao inventário.")
             break  # Adiciona apenas um patrimônio por vez
@@ -143,19 +144,25 @@ def adicionar_ao_inventario(item):
 
 # --- Tela de Input de Dados ---
 def tela_input_dados(df):
+    # -- configurações iniciais --
     colunas_de_interesse = ['denominacao', 'status', 'marca_total', 'modelo_total', 'serie_total', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'valor','especificacoes','num tombamento']
     st.title("Levantamento Patrimonial")
     if 'localidade_selecionada' not in st.session_state:
         st.session_state['localidade_selecionada'] = None
     if 'inventario' not in st.session_state:
         st.session_state['inventario'] = []
+    
+    #verificar se df_inventario será utilizado
     df_inventario = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
     df_inventario['num tombamento'] = df.index
+
+    # Informar localidade e acompanhamento inventario
     col1, col2 = st.columns(2)
     with col1:
         localidades = obter_localidades()
         localidade_escolhida = st.selectbox("Localidade", localidades, key="localidade_escolha")
-        if localidade_escolhida == "Nova Localidade":
+        nova_localidade = col1.button('Nova localidade')
+        if nova_localidade:
             nova_localidade = st.text_input("Nova Localidade", key="nova_localidade")
             if nova_localidade:
                 st.session_state['localidade_selecionada'] = nova_localidade
@@ -164,8 +171,9 @@ def tela_input_dados(df):
         else:
             st.session_state['localidade_selecionada'] = localidade_escolhida
     with col2:
-        acompanhante = st.text_input("Acompanhante")
+        acompanhamento = st.text_input("Acompanhamento inventário")
     df_resultados_busca = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
+    
     
     # -- Inserção de dados --
     st.subheader("Inserir Dados do Patrimônio")
@@ -175,14 +183,14 @@ def tela_input_dados(df):
     #detentor
     detentor = col2.selectbox("Adicionar bens de detentor", df['acautelado para'].unique(), key="detentor")
     index_cautela = df[df['acautelado para'] == detentor].index.tolist()
-    # botão para buscar características
-    caracteristicas = st.multiselect("Buscar por características",df['caracteristicas'])
-    st.write(caracteristicas)
-    #retorna índices onde características = df['caracteristicas'].str.contains(caracteristicas[0], case=False)
-    if caracteristicas:
+    # botão para buscar características, não buscar nada quando iniciar sessão
+    botao_caracteristicas = col2.button('Buscar por características')
+    if botao_caracteristicas:
+        caracteristicas = st.multiselect("Buscar por características",df['caracteristicas'],default = None)
         index_caracteristicas = df[df['caracteristicas'].str.contains(caracteristicas[0], case=False)].index.tolist()
-        st.write(index_caracteristicas)
-    
+    else:
+        index_caracteristicas = []
+
     # -- Resultados de busca --
     resultados_busca = None
     if len(index_cautela) > 0: #retorna resultados por cautela
@@ -197,7 +205,6 @@ def tela_input_dados(df):
     
 
     # -- Resultados de busca -- 
-    st.write(resultados_busca)
     st.subheader("Resultados da Busca")
     if resultados_busca != None:
         exibir_detalhes_patrimonio(df, resultados_busca)
@@ -212,20 +219,19 @@ def tela_input_dados(df):
     df.set_index('num tombamento', inplace=True, drop=False)
     df_inventario = df[df.index.isin(inventario_convertido)]
     if df_inventario.empty:
-        st.write('Nenhum bem foi adicionado ao inventário ainda.')
+        st.warning('Nenhum bem foi adicionado ao inventário ainda.')
     
     else:
-        st.data_editor(df_inventario[colunas_de_interesse], use_container_width=True)
+        st.dataframe(df_inventario[colunas_de_interesse], use_container_width=True)
     st.divider()
     
     # -- Verificação de duplicidade --
-    len(st.session_state['inventario']) != len(set(st.session_state['inventario']))
-    st.warning("Existem itens duplicados no inventário. Verifique os IDs.")
-    # Exibir os itens duplicados
-    duplicados = [item for item in set(st.session_state['inventario']) if st.session_state['inventario'].count(item) > 1]
-    st.write("Itens duplicados:", duplicados)
-    
-    st.divider()
+    if len(st.session_state['inventario']) != len(set(st.session_state['inventario'])):
+        st.warning("Existem itens duplicados no inventário. Verifique os IDs.")
+        # Exibir os itens duplicados
+        duplicados = [item for item in set(st.session_state['inventario']) if st.session_state['inventario'].count(item) > 1]
+        st.write("Itens duplicados:", duplicados)
+        st.divider()
     
     # -- Seção bens a inventariar --
     df_localidade = df[df['localidade'].isin(list(localidade_escolhida))]
@@ -236,10 +242,26 @@ def tela_input_dados(df):
     st.dataframe(df_localidade[colunas_de_interesse], use_container_width=True)
 
     st.divider()
-
+    
+    # -- Seção de salvamento do inventário --
     if st.button("Concluir Levantamento"):
         st.success("Levantamento concluído!")
-            # Adicionar lógica para salvar os dados do inventário no banco de dados
+        # Transformar st.session_state['inventario'] em txt
+        path_destino = f'data_gold/{st.session_state["localidade_selecionada"]}.txt'
+        path_destino = path_destino.replace("'", "").replace("[", "").replace("]", "")
+        with open(path_destino, 'w') as f:
+            for item in st.session_state['inventario']:
+                f.write(f"{item}\n")    
+        with open(path_destino, 'r') as f:        
+            conteudo_arquivo = f.read()    
+        st.download_button(
+            label="Baixar inventário",
+            data=conteudo_arquivo,
+            file_name=path_destino.split('/')[-1],
+            mime='text/plain',
+            icon=':download:'
+        )
+        
         
     
 
