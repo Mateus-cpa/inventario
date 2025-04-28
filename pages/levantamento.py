@@ -259,7 +259,7 @@ def tela_input_dados(df):
             data=conteudo_arquivo,
             file_name=path_destino.split('/')[-1],
             mime='text/plain',
-            icon=':download:'
+            #icon=':download:'
         )
         
         
