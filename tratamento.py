@@ -253,10 +253,12 @@ def salva_estatisticas_levantamento(df, nome_base="historico_levantamento"):
     
     # 1. Calcular a quantidade total por unidade (qtde_total)
     
-    df_total = df.groupby('sigla')['num tombamento'].size().reset_index(name='qtde_total').set_index('sigla')
+    df_ativos = df[df['status'].isin(['EFETIVADO', 'ACAUTELADO', 'BEM NÃO LOCALIZADO'])].copy()
+
+    df_total = df_ativos.groupby('sigla')['num tombamento'].size().reset_index(name='qtde_total').set_index('sigla')
 
     # 2. Filtrar por ano de levantamento no ano atual
-    df_levantamento_atual = df[df['ano do levantamento'] == ano_atual].copy()
+    df_levantamento_atual = df_ativos[df_ativos['ano do levantamento'] == ano_atual].copy()
     print(f"Quantidade de bens levantados no ano atual: {df_levantamento_atual.shape[0]}")
 
     # 3. Agrupar a quantidade levantada no ano atual por unidade (qtde_levantado)
