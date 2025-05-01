@@ -15,9 +15,9 @@ def escolhe_dentre_resultados(df, index):
     Args:
         index: Lista de índices dos resultados encontrados.
     """
-    st.subheader("Mais de um patrimônio encontrado. Selecione o desejado:")
+    st.write("**Mais de um patrimônio encontrado. Selecione o desejado:** ")
     for index, row in df.iterrows():
-        if st.checkbox(f"{row['num tombamento']} - {row['denominacao']} - {row['marca_total']} - {row['modelo_total']} - {row['serie_total']} - {row['localidade']} - {row['acautelado para']}'",
+        if st.checkbox(f"{row['status']} - {row['num tombamento']} - {row['denominacao']} - {row['marca_total']} - {row['modelo_total']} - {row['serie_total']} - {row['localidade']} - {row['acautelado para']} - {row['ultimo levantamento']}",
                        key=f"select_{index}"):
             st.session_state['inventario'].append(int(row['num tombamento']))
             st.success(f"Patrimônio {row['num tombamento']} adicionado ao inventário.")
@@ -54,10 +54,10 @@ def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> list[int] | None
         # Obtém os índices dos resultados encontrados
         indices = resultados.index.tolist()
         if len(indices) == 1:
-                    # Adiciona diretamente ao inventário se houver apenas um resultado
-                    st.session_state['inventario'].append(indices[0])
-                    st.success(f"Patrimônio {resultados.iloc[0]['num tombamento']} adicionado ao inventário.")
-                    return indices[0]
+            # Adiciona diretamente ao inventário se houver apenas um resultado
+            st.session_state['inventario'].append(indices[0])
+            st.success(f"Patrimônio {resultados.iloc[0]['num tombamento']} adicionado ao inventário.")
+            return indices[0]
         else:
             escolhe_dentre_resultados(index = indices, df = resultados)
 
@@ -191,8 +191,11 @@ def tela_input_dados(df):
        detentor = st.selectbox("Adicionar bens de detentor", df['acautelado para'].unique(), key="detentor")
        index_cautela = df[df['acautelado para'] == detentor].index.tolist()
     if busca == 'Características':
-        caracteristicas = st.selectbox("Buscar por características",df['caracteristicas'].unique(), key="caracteristicas")
-        st.write("Características selecionadas:", caracteristicas)
+        caracteristicas = st.selectbox("Buscar por características",df['caracteristicas'].unique(), key="caracteristicas", index=0)
+        if caracteristicas == '':
+            caracteristicas = None
+        else:
+            caracteristicas = [caracteristicas]
         if caracteristicas:
             index_caracteristicas = df[df['caracteristicas'].str.contains(caracteristicas[0], case=False)].index.tolist()
     else:
@@ -203,11 +206,9 @@ def tela_input_dados(df):
     resultados_busca = None
     if len(index_cautela) > 0: #retorna resultados por cautela
         resultados_busca = escolhe_dentre_resultados(index = index_cautela, df = df.loc[index_cautela])
-        exibir_detalhes_patrimonio(df, resultados_busca)
         detentor = 'nan'
     elif len(index_caracteristicas) > 0: #retorna resultados por características
         resultados_busca = escolhe_dentre_resultados(index = index_caracteristicas, df = df.loc[index_caracteristicas])
-        exibir_detalhes_patrimonio(df, resultados_busca)
     elif id != '':
         resultados_busca = encontrar_indice_por_id(df=df, id_busca=id)
         exibir_detalhes_patrimonio(df, resultados_busca)
@@ -217,7 +218,7 @@ def tela_input_dados(df):
     
     
     # -- Seção Bens inventariados --
-    st.subheader(f"{len(st.session_state['inventario'])} Bens Levantados em {st.session_state['localidade_selecionada']}")
+    st.subheader(f"{len(st.session_state['inventario'])} Bem(ns) Levantado(s) em {st.session_state['localidade_selecionada']}")
     inventario_convertido = [int(valor) for valor in st.session_state['inventario']]
     df.set_index('num tombamento', inplace=True, drop=False)
     df_inventario = df[df.index.isin(inventario_convertido)]
@@ -241,7 +242,7 @@ def tela_input_dados(df):
     df_localidade.set_index('num tombamento', inplace=True,drop=False)
     #excluir os bens que já foram inventariados
     df_localidade = df_localidade[df_localidade['num tombamento'].isin(st.session_state['inventario']) == False]
-    st.subheader(f"{df_localidade.shape[0]} Bens a inventariar em {st.session_state['localidade_selecionada']}")    
+    st.subheader(f"{df_localidade.shape[0]} Bem(ns) a inventariar em {st.session_state['localidade_selecionada']}")    
     st.dataframe(df_localidade[colunas_de_interesse], use_container_width=True)
 
     st.divider()
