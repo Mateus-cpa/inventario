@@ -57,6 +57,7 @@ def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> list[int] | None
                     # Adiciona diretamente ao inventário se houver apenas um resultado
                     st.session_state['inventario'].append(indices[0])
                     st.success(f"Patrimônio {resultados.iloc[0]['num tombamento']} adicionado ao inventário.")
+                    return indices[0]
         else:
             escolhe_dentre_resultados(index = indices, df = resultados)
 
@@ -69,13 +70,16 @@ def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> list[int] | None
 
 def exibir_detalhes_patrimonio(df, resultados_busca):
     """
-    Exibe os detalhes do patrimônio encontrado no DataFrame.
+    Exibe os detalhes do patrimônio encontrado no DataFrame, se 1 resultado, 
+    ou uma lista para seleção, se vários resultados.
 
     Args:
         df: O DataFrame pandas onde a busca será realizada.
         id_busca: O ID do patrimônio a ser buscado.
     """
     df.set_index('num tombamento', inplace=True, drop=False)
+    if resultados_busca is None:
+        resultados_busca = []
     if isinstance(resultados_busca, int):
         resultados_busca = [resultados_busca]
     if len(resultados_busca) > 0:
@@ -95,8 +99,7 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
                 st.write(f"**Localidade:** :green[{df.loc[resultados_busca,'localidade'].values[0]}]")
             else:
                 st.write(f"**Localidade:** :red[{df.loc[resultados_busca,'localidade'].values[0]}]")
-            if df.loc[resultados_busca,'status'].values[0] == 'ACAUTELADO':
-                st.write(f"**Acautelado para:** {df.loc[resultados_busca,'acautelado para'].values[0]}")
+            
             
         with col3:
             st.write(f"**Marca:** {df.loc[resultados_busca,'marca_total'].values[0]}")
@@ -106,7 +109,7 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
                 st.write(f"**Levantamento:** :red[{df.loc[resultados_busca,'ultimo levantamento'].values[0]}]")
             else:
                 st.write(f"**Levantamento:** :green[{df.loc[resultados_busca,'ultimo levantamento'].values[0]}]")
-            st.write(f"**Valor:** {df.loc[resultados_busca,'valor'].values[0]}")
+            st.write(f"**Valor:** R$ {round(df.loc[resultados_busca,'valor'].values[0],2)}")
             
                 
         with col4:
@@ -114,6 +117,8 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
                 st.write(f"**Status:** :red[ALIENADO]")
             else:
                 st.write(f"**Status:** :green[{df.loc[resultados_busca,'status'].values[0]}]")
+            if df.loc[resultados_busca,'status'].values[0] == 'ACAUTELADO':
+                st.write(f"**Acautelado para:** {df.loc[resultados_busca,'acautelado para'].values[0]}")
             st.write(f"**Descrição:** {df.loc[resultados_busca,'especificacoes'].values[0]}")
         
     
@@ -191,22 +196,18 @@ def tela_input_dados(df):
     else:
         index_caracteristicas = []
 
-    # -- Resultados de busca --
+    # -- Resultados de busca -- 
+    st.subheader("Resultados da Busca")
     resultados_busca = None
     if len(index_cautela) > 0: #retorna resultados por cautela
         resultados_busca = escolhe_dentre_resultados(index = index_cautela, df = df.loc[index_cautela])
+        exibir_detalhes_patrimonio(df, resultados_busca)
         detentor = 'nan'
     elif len(index_caracteristicas) > 0: #retorna resultados por características
         resultados_busca = escolhe_dentre_resultados(index = index_caracteristicas, df = df.loc[index_caracteristicas])
+        exibir_detalhes_patrimonio(df, resultados_busca)
     elif id != '':
         resultados_busca = encontrar_indice_por_id(df=df, id_busca=id)
-    else:
-        st.warning('Nenhum resultado encontrado.')
-    
-
-    # -- Resultados de busca -- 
-    st.subheader("Resultados da Busca")
-    if resultados_busca != None:
         exibir_detalhes_patrimonio(df, resultados_busca)
     
     st.divider()
