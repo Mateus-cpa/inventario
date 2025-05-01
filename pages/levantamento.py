@@ -182,17 +182,19 @@ def tela_input_dados(df):
     
     # -- Inserção de dados --
     st.subheader("Inserir Dados do Patrimônio")
-    col1, col2 = st.columns(2)
-    #id
-    id = col1.text_input("Id. do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)")
-    #detentor
-    detentor = col2.selectbox("Adicionar bens de detentor", df['acautelado para'].unique(), key="detentor")
-    index_cautela = df[df['acautelado para'] == detentor].index.tolist()
-    # botão para buscar características, não buscar nada quando iniciar sessão
-    botao_caracteristicas = col2.button('Buscar por características')
-    if botao_caracteristicas:
-        caracteristicas = st.multiselect("Buscar por características",df['caracteristicas'],default = None)
-        index_caracteristicas = df[df['caracteristicas'].str.contains(caracteristicas[0], case=False)].index.tolist()
+    busca = st.segmented_control('Buscar por:', ['ID', 'Cautela', 'Características'], key="busca", selection_mode="single", default="ID")
+    id, index_cautela, index_caracteristicas = '', [], []
+    # -- Campos de entrada --
+    if busca == 'ID':
+        id = st.text_input("Id. do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)")
+    if busca == 'Cautela':
+       detentor = st.selectbox("Adicionar bens de detentor", df['acautelado para'].unique(), key="detentor")
+       index_cautela = df[df['acautelado para'] == detentor].index.tolist()
+    if busca == 'Características':
+        caracteristicas = st.selectbox("Buscar por características",df['caracteristicas'].unique(), key="caracteristicas")
+        st.write("Características selecionadas:", caracteristicas)
+        if caracteristicas:
+            index_caracteristicas = df[df['caracteristicas'].str.contains(caracteristicas[0], case=False)].index.tolist()
     else:
         index_caracteristicas = []
 
