@@ -1,5 +1,5 @@
-import streamlit as st
-import pandas as pd
+import streamlit as st #type: ignore[import]
+import pandas as pd #type: ignore[import]
 import datetime as dt
 from menu import ler_base_processada
 import gerar_etiqueta as ge
@@ -266,6 +266,7 @@ def tela_input_dados(df):
             ge.gerar_etiquetas(st.session_state['etiquetas'], st.session_state['localidade_selecionada'][0])
             st.success("Etiquetas impressas com sucesso!")
     st.divider()
+
     if st.button("Concluir Levantamento"):
         st.success("Levantamento concluído!")
         # Transformar st.session_state['inventario'] em txt
