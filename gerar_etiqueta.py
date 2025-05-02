@@ -1,11 +1,12 @@
 #Autoria: Rodrigo Henrique Schernovski
-import barcode as barcode_module
-from barcode.writer import ImageWriter
-from PIL import Image, ImageDraw
-from reportlab.lib.pagesizes import mm
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase import pdfmetrics
+import barcode as barcode_module #type: ignore[import]
+from barcode.writer import ImageWriter #type: ignore[import]
+from PIL import Image, ImageDraw #type: ignore[import]
+from reportlab.lib.pagesizes import mm #type: ignore[import]
+from reportlab.pdfgen import canvas #type: ignore[import]
+from reportlab.pdfbase import pdfmetrics #type: ignore[import]
 import os
+import streamlit as st #type: ignore[import]
 
 
 class BarcodePF(object):
@@ -120,7 +121,7 @@ def concatenar_etiquetas_individuais(nome_saida: str):
     """
     Concatena os arquivos PDF individuais em um único arquivo PDF.
     """
-    from PyPDF2 import PdfMerger
+    from PyPDF2 import PdfMerger #type: ignore[import]
 
     # Cria um objeto PdfMerger
     merger = PdfMerger()
@@ -136,7 +137,7 @@ def concatenar_etiquetas_individuais(nome_saida: str):
     
 
     # Salva o arquivo PDF concatenado
-    merger.write(f"txt_etiquetas/{nome_saida}.pdf")
+    merger.write(f"5C_etiqueta_arquivo_final/{nome_saida}.pdf")
     merger.close()
 
 def remover_arquivos():
@@ -147,15 +148,30 @@ def remover_arquivos():
         if arquivo.endswith(".pdf"):
             os.remove(os.path.join("etiquetas_geradas/", arquivo))
 
-if __name__ == '__main__':
-    arquivo_origem_txt = 'Setec p3.txt' # Nome do arquivo txt com os patrimônios'
-    patrimonios = ler_txt(f'txt_etiquetas/{arquivo_origem_txt}') # Lê o arquivo txt com os patrimônios
-    #patrimonios = [2025009535, 2025009536, 2025009537]
+def gerar_etiquetas(arquivo_origem_lista: list, localidade: str):
+    """
+    Gera etiquetas a partir de um arquivo de texto com os patrimônios.
+    """
+    patrimonios = ler_txt(arquivo_origem_lista) # Lê o arquivo txt com os patrimônios
     for patrimonio in patrimonios:
         patrimonio = str(patrimonio)
-        #print(f"Gerando código de barras para o patrimônio {patrimonio}")
         barcode = BarcodePF(patrimonio)
-        #print(f"Código de barras gerado com sucesso!")
+        st.write(f"Gerando etiqueta {patrimonio}")
+    st.write(f"Gerando PDF concatenado para o arquivo {localidade}")
+    concatenar_etiquetas_individuais(nome_saida = localidade)
+    # Download do arquivo PDF concatenado
+    st.download_button(label="Baixar PDF", data=open(f"5C_etiqueta_arquivo_final/{localidade}.pdf", "rb").read(), file_name=f"{localidade}.pdf")
+    st.write('Apagando arquivos pdf individuais de etiquetas_geradas/')
+    remover_arquivos()
+    st.write('Arquivos individuais apagados com sucesso!')
+
+if __name__ == '__main__':
+    # Lê o primeiro arquivo na pasta 5A_txt_etiquetas/ 
+    arquivo_origem_txt = os.listdir('5A_txt_etiquetas/')[0] # Lê o primeiro arquivo na pasta 5A_txt_etiquetas/
+    patrimonios = ler_txt(f'5A_txt_etiquetas/{arquivo_origem_txt}') # Lê o arquivo txt com os patrimônios
+    for patrimonio in patrimonios:
+        patrimonio = str(patrimonio)
+        barcode = BarcodePF(patrimonio)
     print(f"Gerando PDF concatenado para o arquivo {arquivo_origem_txt}")
     concatenar_etiquetas_individuais(nome_saida = arquivo_origem_txt)
     print('Apagando arquivos pdf individuais de etiquetas_geradas/')
