@@ -4,8 +4,10 @@
 # Dados crus do sistema
 data
 data_bronze
-txt_etiquetas
-etiquetas_geradas
+5A_txt_etiquetas
+5B_etiquetas_geradas
+5C_etiqueta_arquivo_final
+.streamlit
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
