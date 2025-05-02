@@ -1,5 +1,5 @@
-import streamlit as st
-import pandas as pd
+import streamlit as st # type: ignore
+import pandas as pd # type: ignore
 
 
 def ler_base_processada(caminho):
@@ -20,23 +20,15 @@ def ler_base_processada(caminho):
 def menu_principal():
     st.title('Menu principal')
     
-    """if 'autenticado' not in st.session_state or not st.session_state['autenticado']:
-        tela_credenciais()
+    if not st.user.is_logged_in:
+        st.login("microsoft")
     else:
-        tela_input_dados()"""
-    # Para fins de teste, vamos chamar a tela de input de dados diretamente
-    CAMINHO_PROCESSADO = 'data_bronze/lista_bens-processado.csv'
-    df = ler_base_processada(CAMINHO_PROCESSADO)
-    st.write(df.columns)
-    st.write(df.index)
+        st.switch_page('pages/levantamento.py')
+        # Para fins de teste, vamos chamar a tela de input de dados diretamente
+        #CAMINHO_PROCESSADO = 'data_bronze/lista_bens-processado.csv'
+        #df = ler_base_processada(CAMINHO_PROCESSADO)
     
-    col1, col2 = st.columns(2)
-    credenciamento = col1.button('Credenciamento')
-    if credenciamento:
-        st.switch_page('pages/credenciamento.py')
-    status_base = col2.button('Status da Base de dados')
-    if status_base:
-        st.switch_page('pages/status_base.py')
+    
     pass
 
 if __name__ == '__main__':
