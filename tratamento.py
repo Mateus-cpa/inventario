@@ -1,5 +1,5 @@
-import pandas as pd
-from tqdm import tqdm
+import pandas as pd #type: ignore
+from tqdm import tqdm   #type: ignore
 #from python_calamine.pandas import pandas_monkeypatch
 #from openpyxl.workbook import Workbook
 import os
