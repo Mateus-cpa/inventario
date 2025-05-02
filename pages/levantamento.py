@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime as dt
 from menu import ler_base_processada
+import gerar_etiqueta as ge
 
 #Funções auxiliares
 def obter_localidades():
@@ -248,6 +249,23 @@ def tela_input_dados(df):
     st.divider()
     
     # -- Seção de salvamento do inventário --
+    if st.button('Gerar etiquetas'):
+       # permitir selecionar vários itens de df_inventario e adicionar na lista st.session_state['etiquetas'] e após botão de imprimir etiquetas
+        if 'etiquetas' not in st.session_state:
+            st.session_state['etiquetas'] = []
+        for index, row in df_inventario.iterrows():
+            if st.checkbox(f"{row['status']} - {row['num tombamento']} - {row['denominacao']} - {row['marca_total']} - {row['modelo_total']} - {row['serie_total']} - {row['localidade']} - {row['acautelado para']} - {row['ultimo levantamento']}",
+                           key=f"select_{index}"):
+                st.session_state['etiquetas'].append(int(row['num tombamento']))
+                st.success(f"Patrimônio {row['num tombamento']} adicionado à lista de etiquetas.")
+        if st.session_state['etiquetas']:
+            st.write("Patrimônios selecionados para impressão de etiquetas:")
+            for item in st.session_state['etiquetas']:
+                st.write(f"- {item}")
+        if st.button("Imprimir etiquetas"):
+            ge.gerar_etiquetas(st.session_state['etiquetas'], st.session_state['localidade_selecionada'][0])
+            st.success("Etiquetas impressas com sucesso!")
+    st.divider()
     if st.button("Concluir Levantamento"):
         st.success("Levantamento concluído!")
         # Transformar st.session_state['inventario'] em txt
