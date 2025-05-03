@@ -225,9 +225,17 @@ def tela_input_dados(df):
     df_inventario = df[df.index.isin(inventario_convertido)]
     if df_inventario.empty:
         st.warning('Nenhum bem foi adicionado ao inventário ainda.')
-    
     else:
-        st.dataframe(df_inventario[colunas_de_interesse], use_container_width=True)
+        df_inventario = df_inventario[colunas_de_interesse]
+        df_inventario['gerar_etiquetas'] = False
+        # colocar na primeira coluna o checkbox para gerar etiquetas
+        cols = df_inventario.columns
+        cols = ['gerar_etiquetas'] + [col for col in cols if col != 'gerar_etiquetas']
+        df_inventario = df_inventario[cols]
+        st.data_editor(df_inventario, use_container_width=True)
+        if st.button('Gerar etiquetas'):
+            st.session_state['gerar_etiquetas'] = df_inventario[df_inventario['gerar_etiquetas'] == True]['num tombamento'].tolist()
+            st.write(f"Etiquetas geradas para os bens: {st.session_state['gerar_etiquetas']}")
     st.divider()
     
     # -- Verificação de duplicidade --
@@ -248,25 +256,17 @@ def tela_input_dados(df):
 
     st.divider()
     
-    # -- Seção de salvamento do inventário --
-    if st.button('Gerar etiquetas'):
-       # permitir selecionar vários itens de df_inventario e adicionar na lista st.session_state['etiquetas'] e após botão de imprimir etiquetas
-        if 'etiquetas' not in st.session_state:
-            st.session_state['etiquetas'] = []
-        for index, row in df_inventario.iterrows():
-            if st.checkbox(f"{row['status']} - {row['num tombamento']} - {row['denominacao']} - {row['marca_total']} - {row['modelo_total']} - {row['serie_total']} - {row['localidade']} - {row['acautelado para']} - {row['ultimo levantamento']}",
-                           key=f"select_{index}"):
-                st.session_state['etiquetas'].append(int(row['num tombamento']))
-                st.success(f"Patrimônio {row['num tombamento']} adicionado à lista de etiquetas.")
-        if st.session_state['etiquetas']:
-            st.write("Patrimônios selecionados para impressão de etiquetas:")
-            for item in st.session_state['etiquetas']:
-                st.write(f"- {item}")
+    # -- Gerar etiquetas --
+    if st.session_state['gerar_etiquetas']:
+        st.subheader("Etiquetas a gerar:")
+        # permitir selecionar vários itens de df_inventario e adicionar na lista st.session_state['etiquetas'] e após botão de imprimir etiquetas
+        st.dataframe(df_inventario[df_inventario['gerar_etiquetas'] == True][colunas_de_interesse], use_container_width=True)
         if st.button("Imprimir etiquetas"):
             ge.gerar_etiquetas(st.session_state['etiquetas'], st.session_state['localidade_selecionada'][0])
             st.success("Etiquetas impressas com sucesso!")
-    st.divider()
+        st.divider()
 
+    # -- Concluir levantamento --
     if st.button("Concluir Levantamento"):
         st.success("Levantamento concluído!")
         # Transformar st.session_state['inventario'] em txt
