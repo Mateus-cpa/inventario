@@ -151,6 +151,7 @@ def adicionar_ao_inventario(item):
 # --- Tela de Input de Dados ---
 def tela_input_dados(df):
     # -- configurações iniciais --
+    
     colunas_de_interesse = ['denominacao', 'status', 'marca_total', 'modelo_total', 'serie_total', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'valor','especificacoes','num tombamento']
     st.title("Levantamento Patrimonial")
     if 'localidade_selecionada' not in st.session_state:
