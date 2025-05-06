@@ -13,7 +13,7 @@ class BarcodePF(object):
     def __init__(self, patrimonio : str):
         
         self.patrimonio = patrimonio  # Número do patrimônio em string
-        self.path = "etiquetas_geradas/"                # Para salvar os arquivos em outro diretório
+        self.path = "5B_etiquetas_geradas/"                # Para salvar os arquivos em outro diretório
         
         self.png_name = os.path.join(self.path, f'codigo_de_barras_{patrimonio}') # Nome do código de barras em .png
         self.pdf_name =  os.path.join(self.path, f'codigo_de_barras_{patrimonio}') # Nome do código de barras em .pdf
@@ -128,11 +128,11 @@ def concatenar_etiquetas_individuais(nome_saida: str):
 
     # Adiciona os arquivos PDF individuais da pasta etiquetas_geradas/ 
     # de data dos mais antigo par ao mais recente ao objeto PdfMerger
-    lista_arquivos = sorted(os.listdir("etiquetas_geradas/"), key=lambda x: os.path.getmtime(os.path.join("etiquetas_geradas/", x)))
+    lista_arquivos = sorted(os.listdir("5B_etiquetas_geradas/"), key=lambda x: os.path.getmtime(os.path.join("5B_etiquetas_geradas/", x)))
     print(f'quantidade de etiquetas geradas: {len(lista_arquivos)}')
     for arquivo in lista_arquivos:
         if arquivo.endswith(".pdf"):
-            caminho_arquivo = os.path.join("etiquetas_geradas/", arquivo)
+            caminho_arquivo = os.path.join("5B_etiquetas_geradas/", arquivo)
             merger.append(caminho_arquivo)
     
 
