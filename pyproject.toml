@@ -19,6 +19,7 @@ rapidfuzz = "3.13.0"
 reportlab = "4.3.1"
 pypdf2 = "^3.0.1"
 sqlmodel = "^0.0.24"
+python-dateutil = "2.8.2"
 
 [build-system]
 requires = ["poetry-core"]
