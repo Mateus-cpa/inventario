@@ -144,9 +144,9 @@ def remover_arquivos():
     """
     Remove os arquivos PDF individuais da pasta etiquetas_geradas/.
     """
-    for arquivo in os.listdir("etiquetas_geradas/"):
+    for arquivo in os.listdir("5B_etiquetas_geradas/"):
         if arquivo.endswith(".pdf"):
-            os.remove(os.path.join("etiquetas_geradas/", arquivo))
+            os.remove(os.path.join("5B_etiquetas_geradas/", arquivo))
 
 def gerar_etiquetas(arquivo_origem_lista: list, localidade: str):
     """
