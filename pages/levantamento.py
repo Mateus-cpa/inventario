@@ -2,7 +2,7 @@ import streamlit as st #type: ignore[import]
 import pandas as pd #type: ignore[import]
 import datetime as dt
 from menu import ler_base_processada
-import gerar_etiqueta as ge
+#import gerar_etiqueta as etiq
 
 #Funções auxiliares
 def obter_localidades():
@@ -151,16 +151,17 @@ def adicionar_ao_inventario(item):
 # --- Tela de Input de Dados ---
 def tela_input_dados(df):
     # -- configurações iniciais --
-    
     colunas_de_interesse = ['denominacao', 'status', 'marca_total', 'modelo_total', 'serie_total', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'valor','especificacoes','num tombamento']
     st.title("Levantamento Patrimonial")
     if 'localidade_selecionada' not in st.session_state:
         st.session_state['localidade_selecionada'] = None
     if 'inventario' not in st.session_state:
         st.session_state['inventario'] = []
+    if 'gerar_etiquetas' not in st.session_state:
+        st.session_state['gerar_etiquetas'] = []
     
     #verificar se df_inventario será utilizado
-    df_inventario = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
+    df_inventario = pd.DataFrame(columns=['num_tombamento', 'inventariado', 'horario_inventario', 'local_inventario'])
     df_inventario['num tombamento'] = df.index
 
     # Informar localidade e acompanhamento inventario
@@ -229,14 +230,21 @@ def tela_input_dados(df):
     else:
         df_inventario = df_inventario[colunas_de_interesse]
         df_inventario['gerar_etiquetas'] = False
+        df_inventario['excluir'] = False
         # colocar na primeira coluna o checkbox para gerar etiquetas
         cols = df_inventario.columns
-        cols = ['gerar_etiquetas'] + [col for col in cols if col != 'gerar_etiquetas']
+        # colocar gerar_etiquetas na primeira coluna
+        first_cols = ['gerar_etiquetas', 'excluir'] 
+        other_cols = [col for col in cols if (col not in first_cols)]
+        cols = first_cols + other_cols
         df_inventario = df_inventario[cols]
-        st.data_editor(df_inventario, use_container_width=True)
-        if st.button('Gerar etiquetas'):
-            st.session_state['gerar_etiquetas'] = df_inventario[df_inventario['gerar_etiquetas'] == True]['num tombamento'].tolist()
-            st.write(f"Etiquetas geradas para os bens: {st.session_state['gerar_etiquetas']}")
+        df_etiquetas = st.data_editor(df_inventario, use_container_width=True)
+        col1, col2, col3 = st.columns([0.1, 0.17, 0.73])
+        if col2.button('Gerar etiquetas'):
+            st.session_state['gerar_etiquetas'] = df_etiquetas.loc[df_etiquetas['gerar_etiquetas'] == True].index.tolist()
+        if col3.button('Excluir itens'):
+            st.session_state['inventario'] = df_etiquetas.loc[df_etiquetas['excluir'] == False].index.tolist()
+            
     st.divider()
     
     # -- Verificação de duplicidade --
@@ -258,12 +266,12 @@ def tela_input_dados(df):
     st.divider()
     
     # -- Gerar etiquetas --
-    if st.session_state['gerar_etiquetas']:
+    if len(st.session_state['gerar_etiquetas']) > 0:
         st.subheader("Etiquetas a gerar:")
         # permitir selecionar vários itens de df_inventario e adicionar na lista st.session_state['etiquetas'] e após botão de imprimir etiquetas
         st.dataframe(df_inventario[df_inventario['gerar_etiquetas'] == True][colunas_de_interesse], use_container_width=True)
         if st.button("Imprimir etiquetas"):
-            ge.gerar_etiquetas(st.session_state['etiquetas'], st.session_state['localidade_selecionada'][0])
+            #etiq.gerar_etiquetas(st.session_state['etiquetas'], st.session_state['localidade_selecionada'][0])
             st.success("Etiquetas impressas com sucesso!")
         st.divider()
 
