@@ -29,14 +29,14 @@ Serão criados filtros de levantamentos por dia e levantamentos não carregados.
 * Streamlit
 * Pandas
 * SQLite (ou outro banco de dados SQL)
-* Docker (nao implementado na primeira etapa)
+* Docker (não implementado na primeira etapa)
 
 ## Pré-requisitos
 
 * Python 3.13.0
 * Pip
 
-## Instalação
+## Instalação (pyenv)
 
 1.  Clone o repositório:
 
@@ -58,6 +58,14 @@ Serão criados filtros de levantamentos por dia e levantamentos não carregados.
     ```bash
     pip install -r requirements.txt
     ```
+
+### Com Poetry:
+```bash
+poetry init
+pyenv local 3.13.0
+poetry shell
+poetry install
+```
 
 ## Execução
 
