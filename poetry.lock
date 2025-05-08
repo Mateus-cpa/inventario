@@ -1127,13 +1127,13 @@ image = ["Pillow"]
 
 [[package]]
 name = "python-barcode"
-version = "0.15.1"
+version = "0.14.0"
 description = "Create standard barcodes with Python. No external modules needed. (optional Pillow support included)."
 optional = false
 python-versions = "*"
 files = [
-    {file = "python-barcode-0.15.1.tar.gz", hash = "sha256:3b1825fbdb11e597466dff4286b4ea9b1e86a57717b59e563ae679726fc854de"},
-    {file = "python_barcode-0.15.1-py3-none-any.whl", hash = "sha256:057636fba37369c22852410c8535b36adfbeb965ddfd4e5b6924455d692e0886"},
+    {file = "python-barcode-0.14.0.tar.gz", hash = "sha256:241b34aa5c5cb6a9889882f9409b0182903a2c5d19b4218be3609cdbbd5ffdf9"},
+    {file = "python_barcode-0.14.0-py3-none-any.whl", hash = "sha256:eefbb2583ba7bdb09baba6f8663129883109c61df7e23c9b9b473087521c926f"},
 ]
 
 [package.extras]
@@ -1901,4 +1901,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13.0"
-content-hash = "17dd209861793ecc7803a0442ac81d5c6960311b486317732d0ffc21f60dc602"
+content-hash = "01ffa200ce476a844097bd13f37325cdc359956b9bc2f7ac60bc289f7bd6f0d2"
