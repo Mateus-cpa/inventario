@@ -1,12 +1,4 @@
 #Autoria: Rodrigo Henrique Schernovski
-import barcode as barcode_module #type: ignore[import]
-from barcode.writer import ImageWriter #type: ignore[import]
-from PIL import Image, ImageDraw #type: ignore[import]
-from reportlab.lib.pagesizes import mm #type: ignore[import]
-from reportlab.pdfgen import canvas #type: ignore[import]
-from reportlab.pdfbase import pdfmetrics #type: ignore[import]
-import os
-import streamlit as st #type: ignore[import]
 
 
 class BarcodePF(object):
@@ -166,6 +158,14 @@ def gerar_etiquetas(arquivo_origem_lista: list, localidade: str):
     st.write('Arquivos individuais apagados com sucesso!')
 
 if __name__ == '__main__':
+    import barcode as barcode_module #type: ignore[import]
+    from barcode.writer import ImageWriter #type: ignore[import]
+    from PIL import Image, ImageDraw #type: ignore[import]
+    from reportlab.lib.pagesizes import mm #type: ignore[import]
+    from reportlab.pdfgen import canvas #type: ignore[import]
+    from reportlab.pdfbase import pdfmetrics #type: ignore[import]
+    import os
+    import streamlit as st #type: ignore[import]
     # Lê o primeiro arquivo na pasta 5A_txt_etiquetas/ 
     arquivo_origem_txt = os.listdir('5A_txt_etiquetas/')[0] # Lê o primeiro arquivo na pasta 5A_txt_etiquetas/
     patrimonios = ler_txt(f'5A_txt_etiquetas/{arquivo_origem_txt}') # Lê o arquivo txt com os patrimônios
