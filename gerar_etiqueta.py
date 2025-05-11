@@ -141,10 +141,15 @@ def remover_arquivos():
             os.remove(os.path.join("5B_etiquetas_geradas/", arquivo))
 
 def gerar_etiquetas(arquivo_origem_lista: list, localidade: str):
+    
     """
     Gera etiquetas a partir de um arquivo de texto com os patrimônios.
     """
-    patrimonios = ler_txt(arquivo_origem_lista) # Lê o arquivo txt com os patrimônios
+    
+    if isinstance(arquivo_origem_lista, list):
+        patrimonios = arquivo_origem_lista # Lê o arquivo txt com os patrimônios
+    else:
+        patrimonios = ler_txt(arquivo_origem_lista) # Lê o arquivo txt com os patrimônios
     for patrimonio in patrimonios:
         patrimonio = str(patrimonio)
         barcode = BarcodePF(patrimonio)
@@ -166,6 +171,7 @@ if __name__ == '__main__':
     from reportlab.pdfbase import pdfmetrics #type: ignore[import]
     import os
     import streamlit as st #type: ignore[import]
+
     # Lê o primeiro arquivo na pasta 5A_txt_etiquetas/ 
     arquivo_origem_txt = os.listdir('5A_txt_etiquetas/')[0] # Lê o primeiro arquivo na pasta 5A_txt_etiquetas/
     patrimonios = ler_txt(f'5A_txt_etiquetas/{arquivo_origem_txt}') # Lê o arquivo txt com os patrimônios
