@@ -9,6 +9,22 @@ def obter_localidades():
     localidades = pd.read_csv("data_bronze/localidades.csv").values.tolist()
     return localidades
 
+def adicionar_ao_inventario(id = int):
+    """
+    Adiciona o ID do patrimônio ao inventário.
+
+    Args:
+        id: O ID do patrimônio a ser adicionado.
+    """
+    if 'inventario' not in st.session_state:
+        st.session_state['inventario'] = []
+    if not id in st.session_state['inventario']:
+        st.session_state['inventario'].append(id)
+        st.success(f"Patrimônio {id} adicionado ao inventário.")
+
+    else:
+        st.warning(f"Patrimônio {id} já está no inventário.")
+
 def escolhe_dentre_resultados(df, index):
     """
     Exibe uma lista de resultados encontrados e permite ao usuário escolher quais deles.
@@ -20,9 +36,8 @@ def escolhe_dentre_resultados(df, index):
     for index, row in df.iterrows():
         if st.checkbox(f"{row['status']} - {row['num tombamento']} - {row['denominacao']} - {row['marca_total']} - {row['modelo_total']} - {row['serie_total']} - {row['localidade']} - {row['acautelado para']} - {row['ultimo levantamento']}",
                        key=f"select_{index}"):
-            st.session_state['inventario'].append(int(row['num tombamento']))
-            st.success(f"Patrimônio {row['num tombamento']} adicionado ao inventário.")
-            break  # Adiciona apenas um patrimônio por vez
+            adicionar_ao_inventario(int(row['num tombamento']))
+            # Adiciona apenas um patrimônio por vez
 
     return index
 
@@ -56,8 +71,7 @@ def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> list[int] | None
         indices = resultados.index.tolist()
         if len(indices) == 1:
             # Adiciona diretamente ao inventário se houver apenas um resultado
-            st.session_state['inventario'].append(indices[0])
-            st.success(f"Patrimônio {resultados.iloc[0]['num tombamento']} adicionado ao inventário.")
+            adicionar_ao_inventario(indices[0])
             return indices[0]
         else:
             escolhe_dentre_resultados(index = indices, df = resultados)
