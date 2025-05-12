@@ -21,6 +21,7 @@ def adicionar_ao_inventario(id = int):
     if not id in st.session_state['inventario']:
         st.session_state['inventario'].append(id)
         st.success(f"Patrimônio {id} adicionado ao inventário.")
+    #colocar condição de não adicionar bem com status alienado ou já inventariado no ano
 
     else:
         st.warning(f"Patrimônio {id} já está no inventário.")
@@ -57,24 +58,24 @@ def encontrar_indice_por_id(df: pd.DataFrame, id_busca: str) -> list[int] | None
     try:
         # Busca em todas as colunas relevantes
         df.set_index('num tombamento', inplace=True, drop=False)
-        resultados = df[
+        df_resultados = df[
             (df['num tombamento'].astype(str) == str(id_busca)) |
             (df['tombo_antigo'].astype(str) == str(id_busca)) |
             (df['serie_total'].astype(str) == str(id_busca))
         ]
         
-        if resultados.empty:
+        if df_resultados.empty:
             st.warning("Patrimônio não encontrado.")
             return None
 
         # Obtém os índices dos resultados encontrados
-        indices = resultados.index.tolist()
+        indices = df_resultados.index.tolist()
         if len(indices) == 1:
             # Adiciona diretamente ao inventário se houver apenas um resultado
             adicionar_ao_inventario(indices[0])
             return indices[0]
         else:
-            escolhe_dentre_resultados(index = indices, df = resultados)
+            escolhe_dentre_resultados(index = indices, df = df_resultados)
 
     except KeyError as e:
         st.error(f"Erro ao acessar colunas: {e}")
@@ -147,34 +148,28 @@ def tela_input_dados(df):
     # -- configurações iniciais --
     colunas_de_interesse = ['denominacao', 'status', 'marca_total', 'modelo_total', 'serie_total', 'localidade','acautelado para', 'tombo_antigo', 'ultimo levantamento', 'valor','especificacoes','num tombamento']
     st.title("Levantamento Patrimonial")
-    if 'localidade_selecionada' not in st.session_state:
-        st.session_state['localidade_selecionada'] = None
     if 'inventario' not in st.session_state:
         st.session_state['inventario'] = []
     if 'gerar_etiquetas' not in st.session_state:
         st.session_state['gerar_etiquetas'] = []
-    
-    #verificar se df_inventario será utilizado
+    localidades = obter_localidades()
+    #verificar se serão utilizados
+    df_resultados_busca = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
     df_inventario = pd.DataFrame(columns=['num_tombamento', 'inventariado', 'horario_inventario', 'local_inventario'])
     df_inventario['num tombamento'] = df.index
 
     # Informar localidade e acompanhamento inventario
-    col1, col2 = st.columns(2)
-    with col1:
-        localidades = obter_localidades()
-        localidade_escolhida = st.selectbox("Localidade", localidades, key="localidade_escolha")
-        nova_localidade = col1.button('Nova localidade')
-        if nova_localidade:
-            nova_localidade = st.text_input("Nova Localidade", key="nova_localidade")
-            if nova_localidade:
-                st.session_state['localidade_selecionada'] = nova_localidade
-            else:
-                st.session_state['localidade_selecionada'] = None
-        else:
-            st.session_state['localidade_selecionada'] = localidade_escolhida
-    with col2:
-        acompanhamento = st.text_input("Acompanhamento inventário")
-    df_resultados_busca = pd.DataFrame(columns=['num tombamento', 'inventariado', 'horario_inventário', 'local_inventario'])
+    with st.expander("Informar Localidade e Acompanhamento do Inventário", expanded=True):
+        localidade = st.segmented_control('Inventariar:',['Carregar localidade existente','Adicionar localidade'], key='localidade', selection_mode="single", default="Adicionar localidade") 
+        if localidade == 'Carregar localidade existente':
+            localidade_escolhida = st.selectbox("Localidade", localidades, key="localidade_escolha")
+        
+        if localidade == 'Adicionar localidade':
+            localidade_escolhida = st.text_input("Nova Localidade", key="nova_localidade")
+        st.session_state['localidade_selecionada'] = localidade_escolhida
+    
+        st.session_state['acompanhamento'] = st.text_input("Acompanhamento inventário")
+        
     
     
     # -- Inserção de dados --
