@@ -142,6 +142,19 @@ def exibir_detalhes_patrimonio(df, resultados_busca):
         # Se não houver resultados, exibir mensagem
         st.write("Patrimônio não encontrado.")
  
+def limpar_session_state(key):
+    """
+    Limpa o estado da sessão para a chave especificada.
+
+    Args:
+        key: A chave do estado da sessão a ser limpa.
+    """
+    if key in st.session_state:
+        
+        st.session_state[key] = None
+        #st.success(f"Estado da sessão para '{key}' limpo.")
+    else:
+        st.warning(f"Chave '{key}' não encontrada no estado da sessão.")
 
 # --- Tela de Input de Dados ---
 def tela_input_dados(df):
@@ -178,7 +191,10 @@ def tela_input_dados(df):
     id, index_cautela, index_caracteristicas = '', [], []
     # -- Campos de entrada --
     if busca == 'ID':
-        id = st.text_input("Id. do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)")
+        id = st.text_input("Id. do Patrimônio (Nº Patrimônio, Tombo Antigo ou Nº Serial)", 
+                           key="id_input")
+                           #, on_change=limpar_session_state, args=('id_input',))
+        
     if busca == 'Cautela':
        detentor = st.selectbox("Adicionar bens de detentor", df['acautelado para'].unique(), key="detentor")
        index_cautela = df[df['acautelado para'] == detentor].index.tolist()
@@ -204,6 +220,7 @@ def tela_input_dados(df):
     elif id != '':
         resultados_busca = encontrar_indice_por_id(df=df, id_busca=id)
         exibir_detalhes_patrimonio(df, resultados_busca)
+    
     
     st.divider()
     
