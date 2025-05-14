@@ -61,6 +61,7 @@ Serão criados filtros de levantamentos por dia e levantamentos não carregados.
 
 ### Com Poetry:
 ```bash
+python -m venv .venv
 poetry init
 pyenv local 3.13.0
 poetry shell
