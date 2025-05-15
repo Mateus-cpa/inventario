@@ -13,7 +13,7 @@ usuario = os.getenv("DATABASE_USER")
 senha = os.getenv("DATABASE_PASSWORD")
 
 if usuario and senha:
-    print(f"Usuário: OK, Senha: OK")
+    print(f"Importação Usuário e Senha: OK")
 else:
     print("Variáveis DATABASE_USER ou DATABASE_PASSWORD não definidas no .env")
 
@@ -22,8 +22,8 @@ class Levantamento(SQLModel, table=True):
     local_inventario: str
     horario_inventario: str
 
-engine = create_engine("sqlite:///teste_levantamento.db", echo=True)
-#engine = create_engine(f"postgresql+psycopg2://{usuario}:{senha}@host:5432/inventario", echo=True)
+#engine = create_engine("sqlite:///teste_levantamento.db", echo=True)
+engine = create_engine(f"postgresql+psycopg2://{usuario}:{senha}@host:5432/inventario", echo=True)
 #print("Conexão com o PostgreSQL estabelecida com sucesso!")
 
 
