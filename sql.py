@@ -21,15 +21,17 @@ class Levantamento(SQLModel, table=True):
     num_tombamento: int = Field(default=None, primary_key=True)
     local_inventario: str
     horario_inventario: str
+    user: str = Field(default=None)
 
-#engine = create_engine("sqlite:///teste_levantamento.db", echo=True)
-engine = create_engine(f"postgresql+psycopg2://{usuario}:{senha}@host:5432/inventario", echo=True)
-#print("Conexão com o PostgreSQL estabelecida com sucesso!")
+engine = create_engine("sqlite:///teste_levantamento.db", echo=True)
+print("Conexão com o banco local estabelecida com sucesso!")
+#engine = create_engine(f"postgresql+psycopg2://{usuario}:{senha}@host:5432/inventario", echo=True)
+print("Conexão com o PostgreSQL estabelecida com sucesso!")
 
 
 
 locais = ["Local A", "Local B", "Local C", "Local D", "Local E"]
-
+users = ["getulio.gqw", "fernando.sdfe", "mateus.marg", "flavio.fswf", 'domingues.qdd',"eduardo.serf"]
 SQLModel.metadata.create_all(engine)
 
 #pegar o ultimo patrimonio em teste_levantamento.db e salvar na variavel patrimonio
@@ -44,11 +46,12 @@ else:
     patrimonio = 2010220001
 print(f"Ultimo patrimonio: {patrimonio}")
 
-for i in range (1, 20):
+for i in range (1, 30):
     x= i
     levantamento = Levantamento(num_tombamento=patrimonio+x, 
                                 local_inventario=locais[randint(0, 4)], 
-                                horario_inventario=dt.now().strftime("%H:%M:%S"))
+                                horario_inventario=dt.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                user=users[randint(0, 5)])
     with Session(engine) as session:
         session.add(levantamento)
         session.commit()
