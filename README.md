@@ -66,6 +66,7 @@ poetry init
 pyenv local 3.13.0
 poetry shell
 poetry install
+
 ```
 
 ## Execução
