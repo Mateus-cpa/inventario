@@ -1,11 +1,15 @@
-#from typing import Optional
-from sqlmodel import Field, Session, SQLModel, create_engine #type: ignore
-from sqlalchemy import create_engine #type: ignore
 import os
-from dotenv import load_dotenv #type: ignore /// carrega dados de .env para variáveis de ambiente
-from datetime import datetime as dt #type: ignore
+from datetime import datetime as dt
 import time
 from random import randint
+
+
+from sqlalchemy import create_engine, Column, Integer, String #type: ignore
+from sqlalchemy.ext.declarative import declarative_base #type: ignore
+from sqlalchemy.orm import sessionmaker #type: ignore
+from sqlalchemy.exc import SQLAlchemyError #type: ignore
+
+from dotenv import load_dotenv #type: ignore
 
 load_dotenv()
 
@@ -17,26 +21,28 @@ if usuario and senha:
 else:
     print("Variáveis DATABASE_USER ou DATABASE_PASSWORD não definidas no .env")
 
-class Levantamento(SQLModel, table=True):
-    num_tombamento: int = Field(default=None, primary_key=True)
-    local_inventario: str
-    horario_inventario: str
-    user: str = Field(default=None)
+Base = declarative_base()
+
+class Levantamento(Base):
+    __tablename__ = "levantamento"
+    num_tombamento = Column(Integer, primary_key=True)
+    local_inventario = Column(String)
+    horario_inventario = Column(String)
+    user = Column(String)
 
 engine = create_engine("sqlite:///teste_levantamento.db", echo=True)
 print("Conexão com o banco local estabelecida com sucesso!")
 #engine = create_engine(f"postgresql+psycopg2://{usuario}:{senha}@host:5432/inventario", echo=True)
-print("Conexão com o PostgreSQL estabelecida com sucesso!")
-
-
+#print("Conexão com o PostgreSQL estabelecida com sucesso!")
 
 locais = ["Local A", "Local B", "Local C", "Local D", "Local E"]
 users = ["getulio.gqw", "fernando.sdfe", "mateus.marg", "flavio.fswf", 'domingues.qdd',"eduardo.serf"]
-SQLModel.metadata.create_all(engine)
+Base.metadata.create_all(engine)
 
-#pegar o ultimo patrimonio em teste_levantamento.db e salvar na variavel patrimonio
+Session = sessionmaker(bind=engine)
+#Conecta na base para pegar o último patrimônio cadastrado
 connection = engine.connect()
-cursor = connection.connection.cursor()  # Use connection.connection to access the raw DB-API connection
+cursor = connection.connection.cursor()
 cursor.execute("SELECT num_tombamento FROM levantamento ORDER BY num_tombamento DESC LIMIT 1")
 patrimonio = cursor.fetchone()
 cursor.close()
@@ -44,17 +50,24 @@ if patrimonio != None:
     patrimonio = patrimonio[0]
 else:
     patrimonio = 2010220001
-print(f"Ultimo patrimonio: {patrimonio}")
 
+#Cadastra levantamentos aleatórios
+levantamento = []
 for i in range (1, 30):
-    x= i
-    levantamento = Levantamento(num_tombamento=patrimonio+x, 
-                                local_inventario=locais[randint(0, 4)], 
-                                horario_inventario=dt.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                user=users[randint(0, 5)])
-    with Session(engine) as session:
-        session.add(levantamento)
-        session.commit()
+    levantamento.append(Levantamento(
+        num_tombamento=patrimonio + i,
+        local_inventario=locais[randint(0, 4)],
+        horario_inventario=dt.now().strftime("%Y-%m-%d %H:%M:%S"),
+        user=users[randint(0, 5)]
+    ))
     time.sleep(1)
-
-
+    patrimonio += i
+print(levantamento)
+# Adicionando o levantamento à sessão e commitando
+try:
+    with Session() as session:
+        session.add_all(levantamento)
+        session.commit()
+except SQLAlchemyError as e:
+    print(f"Erro ao adicionar levantamento: {e}")
+    
