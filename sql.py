@@ -30,16 +30,16 @@ class Levantamento(Base):
     horario_inventario = Column(String)
     user = Column(String)
 
+#Carrega banco de dados
 engine = create_engine("sqlite:///teste_levantamento.db", echo=True)
 print("Conexão com o banco local estabelecida com sucesso!")
 #engine = create_engine(f"postgresql+psycopg2://{usuario}:{senha}@host:5432/inventario", echo=True)
 #print("Conexão com o PostgreSQL estabelecida com sucesso!")
 
+# Lista dados aleatórios par aincluir no banco
 locais = ["Local A", "Local B", "Local C", "Local D", "Local E"]
 users = ["getulio.gqw", "fernando.sdfe", "mateus.marg", "flavio.fswf", 'domingues.qdd',"eduardo.serf"]
-Base.metadata.create_all(engine)
 
-Session = sessionmaker(bind=engine)
 #Conecta na base para pegar o último patrimônio cadastrado
 connection = engine.connect()
 cursor = connection.connection.cursor()
@@ -63,7 +63,9 @@ for i in range (1, 30):
     time.sleep(1)
     patrimonio += i
 print(levantamento)
-# Adicionando o levantamento à sessão e commitando
+# Criar sessão, adicionar o levantamento e commitar
+Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
 try:
     with Session() as session:
         session.add_all(levantamento)
