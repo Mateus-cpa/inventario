@@ -19,6 +19,7 @@ def cadastra_levantamento():
         local_inventario = Column(String)
         horario_inventario = Column(String)
         user = Column(String)
+        
     engine = create_engine("sqlite:///teste_levantamento.db", echo=True)
 
     #Conecta na base para pegar o último patrimônio cadastrado
@@ -31,7 +32,7 @@ def cadastra_levantamento():
         patrimonio = patrimonio[0]
     else:
         patrimonio = 2010220001
-        
+
     #Cadastra levantamentos aleatórios
     locais = ["Local A", "Local B", "Local C", "Local D", "Local E"]
     users = ["getulio.gqw", "fernando.sdfe", "mateus.marg", "flavio.fswf", 'domingues.qdd',"eduardo.serf"]
