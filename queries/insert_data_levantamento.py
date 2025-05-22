@@ -1,4 +1,3 @@
-import os
 from datetime import datetime as dt
 import time
 from random import randint
