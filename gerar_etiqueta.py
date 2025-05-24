@@ -55,7 +55,7 @@ class BarcodePF(object):
         # Cria uma nova imagem com as dimensões corretas
         self.nova_img = Image.new("RGB", (nova_largura, nova_altura), "white")
 
-        # Adiciona margens e posiciona o code39 no centro
+        # Adiciona margens e posiciona o code39 no centro # alterar para 128
         dx = 14
         dy = -8
         pos_x = (nova_largura - img.width) // 2 + dx
