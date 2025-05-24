@@ -3,6 +3,7 @@ import pandas as pd #type: ignore[import]
 import datetime as dt
 from menu import ler_base_processada
 import gerar_etiqueta as etiq
+import os
 
 #Funções auxiliares
 def obter_localidades():
@@ -285,7 +286,8 @@ def tela_input_dados(df):
     if st.button("Concluir Levantamento"):
         st.success("Levantamento concluído!")
         # Transformar st.session_state['inventario'] em txt
-        path_destino = f'data_gold/{st.session_state["localidade_selecionada"]}.txt'
+        localidade_final = st.session_state["localidade_selecionada"][0].replace('/','-')
+        path_destino = f'data_gold/{localidade_final}.txt'
         path_destino = path_destino.replace("'", "").replace("[", "").replace("]", "")
         with open(path_destino, 'w') as f:
             for item in st.session_state['inventario']:
