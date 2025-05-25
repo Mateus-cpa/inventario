@@ -1,10 +1,12 @@
+#contrato de dados
+from datetime import datetime
 import requests #type: ignore
 from pydantic import BaseModel #type: ignore
 
 class LevantamentoSchema(BaseModel):
     num_tombamento: int
     local_inventario: str
-    horario_inventario: str
+    horario_inventario: datetime
     user: str
 
     class Config:
