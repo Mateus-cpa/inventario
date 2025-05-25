@@ -4,10 +4,8 @@ from random import randint
 import time 
 from datetime import datetime as dt
 from sqlalchemy import create_engine #type: ignore 
-from db import engine, Base
-from models import Levantamento
+from db import Base
 from schema import LevantamentoSchema
-import os
 
 
 def main():    
