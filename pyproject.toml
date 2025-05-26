@@ -24,6 +24,8 @@ sqlalchemy = "^2.0.40"
 psycopg2-binary = "^2.9.10"
 dotenv = "^0.9.9"
 pydantic = "^2.11.5"
+fastapi = "^0.115.12"
+uvicorn = {extras = ["standard"], version = "^0.34.2"}
 
 [build-system]
 requires = ["poetry-core"]
