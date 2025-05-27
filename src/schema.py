@@ -1,7 +1,8 @@
 #contrato de dados
 from datetime import datetime
 import requests #type: ignore
-from pydantic import BaseModel #type: ignore
+from pydantic import BaseModel, PositiveInt #type: ignore
+from typing import Union
 
 class LevantamentoSchema(BaseModel):
     num_tombamento: int
@@ -11,6 +12,12 @@ class LevantamentoSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
+class LevantamentoCreate(LevantamentoSchema):
+    pass
+
+class LevantamentoUpdate(LevantamentoSchema):
+    id: PositiveInt
 
 def cadastrar_levantamento(levantamento: LevantamentoSchema):
     """
@@ -23,6 +30,8 @@ def cadastrar_levantamento(levantamento: LevantamentoSchema):
     except requests.exceptions.RequestException as e:
         print(f"Erro ao cadastrar levantamento: {e}")
         return None
+
+
 
 if __name__ == "__main__":
     # Exemplo de uso
