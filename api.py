@@ -18,3 +18,8 @@ def read_item(item_id:int, q: Union[str, None] = None):
 
 if __name__ == "__main__":
     print(read_item(1, 'teste'))
+
+#Comando para rodar API
+#uvicorn api:app --reload
+#Comando para rodar API com banco de dados
+#uvicorn api:app --reload --host 0.0.0.0 --port 8000
