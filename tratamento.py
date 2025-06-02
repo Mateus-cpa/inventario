@@ -6,6 +6,8 @@ import os
 from datetime import datetime, timedelta
 import json
 from datetime import datetime
+import streamlit as st
+
 
 def pega_tamanho_em_mb(caminho: str):
     return os.path.getsize(caminho) / (1024 * 1024)
